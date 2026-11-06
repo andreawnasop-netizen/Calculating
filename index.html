@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Αντιστοίχιση ποσών · Στήλη 1 & Στήλη 2</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#fafafa;--surface:#ffffff;--ink:#0a0a0a;--ink2:#3f3f46;--muted:#71717a;--line:#e4e4e7;--soft:#f4f4f5;
+  --ok:#15803d;--bad:#b91c1c;--bad-bg:#fee2e2;--warn:#92400e;--warn-bg:#fef3c7;
+  --r:14px;--sh:0 1px 2px rgba(0,0,0,.04),0 6px 20px rgba(0,0,0,.06);--ease:cubic-bezier(.2,.7,.2,1);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0a0a0a;--surface:#141414;--ink:#fafafa;--ink2:#d4d4d8;--muted:#a1a1aa;--line:#27272a;--soft:#1c1c1f;
+    --ok:#4ade80;--bad:#f87171;--bad-bg:#7f1d1d;--warn:#fcd34d;--warn-bg:#78350f;--sh:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0a0a0a;--surface:#141414;--ink:#fafafa;--ink2:#d4d4d8;--muted:#a1a1aa;--line:#27272a;--soft:#1c1c1f;
+  --ok:#4ade80;--bad:#f87171;--bad-bg:#7f1d1d;--warn:#fcd34d;--warn-bg:#78350f;--sh:none;
+}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+button,select{font:inherit;color:var(--ink)}
+button{cursor:pointer;border-radius:10px;padding:9px 14px;border:1px solid var(--ink);transition:transform .15s var(--ease),opacity .2s,background .2s}
+button:hover{transform:translateY(-1px)}
+button:active{transform:translateY(0)}
+button:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.primary{background:var(--ink);color:var(--bg)}
+.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+select{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:7px 10px}
+textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;width:100%;min-height:64px;resize:vertical;padding:10px 12px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;transition:border-color .2s,box-shadow .2s}
+textarea:focus,select:focus{outline:none;border-color:var(--ink);box-shadow:0 0 0 3px rgba(127,127,127,.18)}
+
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 28px;border-bottom:1px solid var(--line);background:var(--surface);position:sticky;top:0;z-index:10;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .dot{width:12px;height:12px;border-radius:50%;background:var(--ink);box-shadow:-6px 0 0 -1px var(--muted)}
+.brand h1{font-size:17px;margin:0;letter-spacing:-.01em}
+.brand p{margin:0;font-size:12px;color:var(--muted)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+
+main{padding:22px 28px;max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:16px 18px;min-width:0}
+
+/* Σύνοψη */
+.chips{display:flex;gap:10px;flex-wrap:wrap}
+.chip-s{flex:1 1 150px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;animation:rise .45s var(--ease) both}
+.chip-s .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.chip-s .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.chip-s.ok .v{color:var(--ok)}
+.chip-s.bad .v{color:var(--bad)}
+.notice{margin-top:12px;font-size:13px;padding:9px 12px;border-radius:10px;background:var(--warn-bg);color:var(--warn)}
+.notice.ok{background:var(--soft);color:var(--ink2)}
+
+/* Εργαλεία */
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.file-btn{display:inline-block;cursor:pointer;border-radius:10px;padding:9px 14px;border:1px solid var(--ink);background:transparent;color:var(--ink);font-size:14px}
+.file-btn input{display:none}
+.file-btn:hover{transform:translateY(-1px)}
+.paste{margin-top:12px}
+.paste label,.lbl{display:block;font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.07em;margin-bottom:5px}
+.paste-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.paste-col label{display:block;font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.07em;margin-bottom:5px}
+.paste-col textarea{min-height:56px}
+@media (max-width:640px){.paste-cols{grid-template-columns:1fr}}
+.run-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:11px;padding:3px;gap:3px;align-items:center;flex-wrap:wrap}
+.seg-label{font-size:13px;color:var(--ink2);padding:0 8px}
+.seg button{border:none;padding:7px 12px;border-radius:8px;background:transparent;color:var(--ink2);font-size:14px}
+.seg button.on{background:var(--ink);color:var(--bg)}
+.small-l{font-size:13px;color:var(--ink2);display:flex;align-items:center;gap:8px}
+.run-row .primary{margin-left:auto;padding:11px 22px;font-weight:700}
+
+/* Πίνακας */
+.table-card{padding:0;overflow:hidden}
+.legend{display:flex;gap:14px;flex-wrap:wrap;padding:12px 18px;border-bottom:1px solid var(--line);font-size:13px;color:var(--ink2)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:6px}
+.wrap{overflow:auto;max-height:70vh}
+table{width:100%;border-collapse:collapse;font-size:14px}
+thead th{position:sticky;top:0;z-index:2;background:var(--soft);text-align:left;font-size:12px;font-weight:700;color:var(--ink2);padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:0;border-bottom:1px solid var(--line);vertical-align:middle}
+td.idx{width:48px;text-align:right;color:var(--muted);font-size:12px;padding:0 10px;font-variant-numeric:tabular-nums;background:var(--soft)}
+td.num input{width:100%;border:none;background:transparent;color:var(--ink);font:inherit;font-variant-numeric:tabular-nums;text-align:right;padding:8px 12px;min-width:110px}
+td.num input:focus{outline:2px solid var(--ink);outline-offset:-2px}
+td.num.tint input{color:#0a0a0a;font-weight:600}
+td.num.bad input{color:var(--bad);background:var(--bad-bg)}
+td.an{padding:8px 14px;font-size:13.5px;color:var(--ink2);white-space:nowrap;font-variant-numeric:tabular-nums}
+td.an b{color:var(--ink)}
+tr.row-new{animation:rise .35s var(--ease) both}
+.tag{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.06em;padding:2px 7px;border-radius:6px;margin-right:6px;vertical-align:1px}
+.tag.y{background:#fef08a;color:#713f12}
+.tag.w{background:var(--warn-bg);color:var(--warn)}
+.red{color:var(--bad)}
+.muted{color:var(--muted)}
+.empty-row{padding:40px 16px;text-align:center;color:var(--muted)}
+.add-row{width:100%;border:none;border-radius:0;background:transparent;color:var(--muted);padding:10px;font-size:13px}
+.add-row:hover{color:var(--ink);transform:none}
+
+/* Μη αντιστοιχισμένα */
+details{border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-top:8px}
+summary{cursor:pointer;font-weight:600;font-size:14px}
+.alt{font-size:13px;color:var(--ink2);padding:6px 0;border-top:1px dashed var(--line);font-variant-numeric:tabular-nums}
+h2{font-size:15px;margin:0 0 6px;letter-spacing:-.01em}
+
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,140px);background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:12px;transition:transform .35s var(--ease);font-size:14px;z-index:50;max-width:90vw;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+.toast.show{transform:translate(-50%,0)}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (max-width:640px){
+  main{padding:14px}.top{padding:14px 16px}
+  .run-row .primary{margin-left:0;width:100%}
+  td.num input{min-width:96px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <span class="dot"></span>
+    <div><h1>Αντιστοίχιση ποσών</h1><p>Βρίσκει αυτούσια ποσά και αθροίσματα ανάμεσα σε δύο στήλες</p></div>
+  </div>
+  <div class="actions">
+    <button id="themeBtn" class="ghost" title="Εναλλαγή θέματος">◐</button>
+    <button id="exportBtn" class="primary" disabled>Εξαγωγή Excel</button>
+  </div>
+</header>
+
+<main>
+  <!-- Σύνοψη -->
+  <section class="card">
+    <div class="chips" id="chips"></div>
+    <div id="notice"></div>
+  </section>
+
+  <!-- Εισαγωγή -->
+  <section class="card">
+    <div class="tools">
+      <label class="file-btn">Άνοιγμα αρχείου (.xlsx, .csv)<input type="file" id="file" accept=".xlsx,.csv"></label>
+      <button id="demoBtn" class="ghost">Δοκιμαστικά δεδομένα</button>
+      <button id="clearBtn" class="ghost">Καθαρισμός</button>
+    </div>
+    <div class="paste-cols">
+      <div class="paste-col">
+        <label for="paste1">ΕΠΙΚΟΛΛΗΣΗ ΣΤΗΛΗΣ 1</label>
+        <textarea id="paste1" data-col="a" placeholder="Αντιγράψτε τη Στήλη 1 από το Excel και επικολλήστε εδώ"></textarea>
+      </div>
+      <div class="paste-col">
+        <label for="paste2">ΕΠΙΚΟΛΛΗΣΗ ΣΤΗΛΗΣ 2</label>
+        <textarea id="paste2" data-col="b" placeholder="Αντιγράψτε τη Στήλη 2 από το Excel και επικολλήστε εδώ"></textarea>
+      </div>
+    </div>
+    <div class="run-row">
+      <div class="seg" role="group" aria-label="Στήλη με τα μερικά ποσά">
+        <span class="seg-label">Τα μερικά ποσά (αθροίσματα) είναι στη</span>
+        <button data-sum="a" class="on">Στήλη 1</button>
+        <button data-sum="b">Στήλη 2</button>
+      </div>
+      <label class="small-l">Μέγιστο πλήθος ποσών σε άθροισμα
+        <select id="maxSize">
+          <option value="2">2</option><option value="3">3</option><option value="4">4</option>
+          <option value="5">5</option><option value="6" selected>6</option><option value="8">8</option><option value="10">10</option>
+        </select>
+      </label>
+      <button id="runBtn" class="primary">Εκτέλεση αντιστοίχισης</button>
+    </div>
+  </section>
+
+  <!-- Πίνακας αποτελεσμάτων -->
+  <section class="card table-card">
+    <div class="legend" id="legend">
+      <span><i style="background:#fef08a"></i>Αυτούσιο: ίδιο ποσό και στις δύο στήλες</span>
+      <span><i style="background:#ddd6fe"></i>Άθροισμα: κάθε χρώμα είναι μια ομάδα</span>
+    </div>
+    <div class="wrap">
+      <table>
+        <thead><tr>
+          <th style="text-align:right">#</th>
+          <th style="text-align:right">Στήλη 1</th>
+          <th style="text-align:right">Στήλη 2</th>
+          <th>Ανάλυση</th>
+        </tr></thead>
+        <tbody id="body"></tbody>
+      </table>
+    </div>
+    <button class="add-row" id="addRowBtn">+ Προσθήκη γραμμής</button>
+  </section>
+
+  <!-- Μη αντιστοιχισμένα -->
+  <section class="card" id="unmatchedCard" hidden>
+    <h2>Μη αντιστοιχισμένα και εναλλακτικές</h2>
+    <div id="unmatched"></div>
+  </section>
+</main>
+
+<div id="toast" class="toast" role="status"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script>
+/* ===== CORE-START ===== */
+/* Μηχανή αντιστοίχισης. Όλα τα ποσά σε ακέραια λεπτά (cents). */
+
+const YELLOW = { ui: '#ca8a04', tint: '#fef08a', xl: 'FFFEF08A' };
+const PALETTE = [
+  { ui: '#7c3aed', tint: '#ddd6fe', xl: 'FFDDD6FE' },
+  { ui: '#2563eb', tint: '#bfdbfe', xl: 'FFBFDBFE' },
+  { ui: '#ea580c', tint: '#fed7aa', xl: 'FFFED7AA' },
+  { ui: '#0d9488', tint: '#99f6e4', xl: 'FF99F6E4' },
+  { ui: '#db2777', tint: '#fbcfe8', xl: 'FFFBCFE8' },
+  { ui: '#15803d', tint: '#bbf7d0', xl: 'FFBBF7D0' },
+  { ui: '#be123c', tint: '#fecdd3', xl: 'FFFECDD3' },
+  { ui: '#4f46e5', tint: '#c7d2fe', xl: 'FFC7D2FE' },
+  { ui: '#65a30d', tint: '#d9f99d', xl: 'FFD9F99D' },
+  { ui: '#0891b2', tint: '#a5f3fc', xl: 'FFA5F3FC' },
+  { ui: '#78716c', tint: '#e7e5e4', xl: 'FFE7E5E4' },
+  { ui: '#c2410c', tint: '#fdba74', xl: 'FFFDBA74' }
+];
+
+const CAP_PER_TARGET = 2000;
+const NODE_BUDGET_PER_TARGET = 2000000;
+const ASSIGN_BUDGET = 3000000;
+const GLOBAL_NODE_BUDGET = 15000000; // συνολικό όριο βημάτων για όλη την αναζήτηση
+
+/* Ανάλυση κελιού → { ok, cents, warn } ή { ok:false, reason }. Δέχεται μόνο καθαρούς αριθμούς. */
+function parseAmount(raw) {
+  if (raw === null || raw === undefined || String(raw).trim() === '') return { ok: false, reason: '' };
+  if (typeof raw === 'number') {
+    if (!Number.isFinite(raw)) return { ok: false, reason: 'Μη έγκυρος αριθμός' };
+    const warn = Math.abs(raw * 100 - Math.round(raw * 100)) > 1e-6 ? 'Περισσότερα από 2 δεκαδικά' : null;
+    return { ok: true, cents: Math.round(raw * 100), warn };
+  }
+  if (raw instanceof Date) return { ok: false, reason: 'Ημερομηνία αντί για ποσό' };
+  let s = String(raw).replace(/[€$£\s ]|EUR/gi, '');
+  const negative = /^\(.*\)$/.test(s) || s.startsWith('-') || s.endsWith('-');
+  s = s.replace(/^[-(]+|[-)]+$/g, '');
+  if (!/^\d[\d.,]*$/.test(s)) return { ok: false, reason: 'Δεν είναι ποσό' };
+
+  const lc = s.lastIndexOf(','), ld = s.lastIndexOf('.');
+  let norm;
+  if (lc > -1 && ld > -1) {
+    norm = lc > ld ? s.replace(/\./g, '').replace(',', '.') : s.replace(/,/g, '');
+  } else if (lc > -1) {
+    const parts = s.split(',');
+    norm = (parts.length === 2 && /^\d{1,2}$/.test(parts[1])) ? parts[0] + '.' + parts[1] : s.replace(/,/g, '');
+  } else if (ld > -1) {
+    const parts = s.split('.');
+    norm = (parts.length > 2 || /^\d{3}$/.test(parts[1] || '')) ? s.replace(/\./g, '') : s;
+  } else {
+    norm = s;
+  }
+  if (!/^\d+(\.\d*)?$/.test(norm)) return { ok: false, reason: 'Δεν είναι ποσό' };
+  const frac = norm.split('.')[1] || '';
+  let cents = Math.round(Number(norm) * 100);
+  if (negative) cents = -cents;
+  return { ok: true, cents, warn: frac.length > 2 ? 'Περισσότερα από 2 δεκαδικά' : null };
+}
+
+/*
+  Όλα τα υποσύνολα του pool (ταξινομημένο αύξουσα κατά ποσό) που αθροίζουν ακριβώς στο target.
+  DFS με κλάδεμα: σταματά όταν το άθροισμα ξεπεράσει το target ή όταν τα υπόλοιπα δεν φτάνουν.
+  Επιστρέφει λίστες δεικτών γραμμών.
+*/
+function findCandidates(target, pool, maxSize, cap, budget) {
+  const n = pool.length;
+  const suffix = new Float64Array(n + 1);
+  for (let p = n - 1; p >= 0; p--) suffix[p] = suffix[p + 1] + pool[p].cents;
+  const out = [];
+  const path = [];
+  let nodes = 0, complete = true;
+
+  // Ψάχνουμε μέγεθος-μέγεθος (1, 2, 3, …) ώστε οι μικρότεροι συνδυασμοί να βρίσκονται πρώτοι,
+  // ακόμα και όταν το όριο των υποψηφίων συμπληρωθεί.
+  function dfs(start, sum, need) {
+    if (need === 0) {
+      if (sum === target) out.push(path.map(p => pool[p].i));
+      return;
+    }
+    for (let p = start; p <= n - need; p++) {
+      if (out.length >= cap || nodes >= budget) { complete = false; return; }
+      nodes++;
+      const v = pool[p].cents;
+      if (sum + v > target) break;
+      if (sum + suffix[p] < target) break;
+      path.push(p);
+      dfs(p + 1, sum + v, need - 1);
+      path.pop();
+      if (!complete) return;
+    }
+  }
+  for (let k = 1; k <= maxSize && complete; k++) dfs(0, 0, k);
+  return { combos: out, complete, nodes };
+}
+
+/*
+  Συνολική κατανομή: για κάθε ποσό-στόχο επιλέγεται ένας συνδυασμός (ή κανένας), χωρίς επικαλύψεις.
+  Μεγιστοποιεί το πλήθος των αντιστοιχίσεων και, σε ισοπαλία, ελαχιστοποιεί τα χρησιμοποιημένα ποσά
+  (έτσι τα ίδια ποσά προτιμώνται ως μονές αντιστοιχίσεις = αυτούσια).
+*/
+function assign(cands, budget) {
+  const T = cands.length;
+  const order = Array.from({ length: T }, (_, k) => k)
+    .sort((a, b) => cands[a].length - cands[b].length || a - b);
+  const used = new Set();
+  const cur = new Array(T).fill(null);
+  let best = new Array(T).fill(null), bestCount = -1, bestItems = Infinity;
+  let nodes = 0, stopped = false;
+
+  function rec(pos, matched, items) {
+    if (stopped) return;
+    if (++nodes > budget) { stopped = true; return; }
+    if (pos === T) {
+      if (matched > bestCount || (matched === bestCount && items < bestItems)) {
+        bestCount = matched; bestItems = items; best = cur.slice();
+      }
+      return;
+    }
+    if (matched + (T - pos) < bestCount) return;
+    const k = order[pos];
+    for (const combo of cands[k]) {
+      let free = true;
+      for (const s of combo) if (used.has(s)) { free = false; break; }
+      if (!free) continue;
+      for (const s of combo) used.add(s);
+      cur[k] = combo;
+      rec(pos + 1, matched + 1, items + combo.length);
+      for (const s of combo) used.delete(s);
+      cur[k] = null;
+      if (stopped) return;
+    }
+    rec(pos + 1, matched, items);
+  }
+  rec(0, 0, 0);
+  return { chosen: best, exhaustive: !stopped };
+}
+
+/*
+  rows: [{ a: cell, b: cell }], cell = { cents }.
+  sumCol: 'a' ή 'b' = η στήλη των μερικών ποσών (αυτή που αθροίζεται).
+  Κάθε ποσό-στόχος της άλλης στήλης αντιστοιχίζεται σε έναν συνδυασμό ποσών της sumCol.
+  Μονή αντιστοίχιση = αυτούσιο (ίδιο ποσό και στις δύο στήλες).
+*/
+function runMatching(rows, sumCol, opts = {}) {
+  const tCol = sumCol === 'a' ? 'b' : 'a';
+  const maxSize = Math.max(1, opts.maxSize || 6);
+  const pos = c => c !== null && c !== undefined && c > 0;
+
+  const targets = [], pool = [];
+  rows.forEach((r, i) => {
+    if (pos(r[tCol].cents)) targets.push({ i, cents: r[tCol].cents });
+    if (pos(r[sumCol].cents)) pool.push({ i, cents: r[sumCol].cents });
+  });
+  const maxTarget = targets.reduce((m, t) => Math.max(m, t.cents), 0);
+  const poolF = pool.filter(p => p.cents <= maxTarget).sort((a, b) => a.cents - b.cents || a.i - b.i);
+
+  let exhaustive = true;
+  let globalLeft = GLOBAL_NODE_BUDGET;
+  const cache = new Map();
+  const cands = targets.map(t => {
+    if (!cache.has(t.cents)) {
+      const r = findCandidates(t.cents, poolF, maxSize, CAP_PER_TARGET,
+        Math.min(NODE_BUDGET_PER_TARGET, Math.max(0, globalLeft)));
+      globalLeft -= r.nodes;
+      cache.set(t.cents, r);
+    }
+    const r = cache.get(t.cents);
+    if (!r.complete) exhaustive = false;
+    return r.combos;
+  });
+  const { chosen, exhaustive: full } = assign(cands, ASSIGN_BUDGET);
+  if (!full) exhaustive = false;
+
+  const groups = [];
+  const candByRow = new Map();
+  targets.forEach((t, k) => {
+    candByRow.set(t.i, cands[k]);
+    if (chosen[k]) groups.push({
+      type: chosen[k].length === 1 ? 'verbatim' : 'sum',
+      sRows: chosen[k].slice(),
+      tRow: t.i,
+      cents: t.cents
+    });
+  });
+
+  // Χρώματα και κάλυψη κελιών
+  const cellGroup = rows.map(() => ({ a: null, b: null }));
+  let pi = 0;
+  groups.forEach((g, gi) => {
+    g.id = gi + 1;
+    g.color = g.type === 'verbatim' ? YELLOW : PALETTE[pi++ % PALETTE.length];
+    g.sRows.forEach(s => { cellGroup[s][sumCol] = g; });
+    cellGroup[g.tRow][tCol] = g;
+  });
+  const tRowMatched = new Set(groups.map(g => g.tRow));
+
+  // Εναλλακτικές λύσεις
+  const valSig = c => c.map(s => rows[s][sumCol].cents).sort((a, b) => a - b).join(',');
+  const alternatives = new Map();
+  groups.forEach(g => {
+    if (g.type !== 'sum') return;
+    const ownSig = valSig(g.sRows);
+    const free = (candByRow.get(g.tRow) || []).filter(c =>
+      valSig(c) !== ownSig &&
+      c.every(s => !cellGroup[s][sumCol] || cellGroup[s][sumCol] === g)
+    );
+    if (free.length) alternatives.set(g.tRow, { multi: true, total: free.length, combos: free.slice(0, 5) });
+  });
+  targets.forEach(t => {
+    if (tRowMatched.has(t.i)) return;
+    const cs = candByRow.get(t.i) || [];
+    if (cs.length) alternatives.set(t.i, { multi: false, total: cs.length, combos: cs.slice(0, 5) });
+  });
+
+  const usedSet = new Set(groups.flatMap(g => g.sRows));
+  return {
+    groups, cellGroup, alternatives, exhaustive,
+    sumCol, tCol, maxSize,
+    tCount: rows.filter(r => pos(r[tCol].cents)).length,
+    sCount: rows.filter(r => pos(r[sumCol].cents)).length,
+    usedSCount: usedSet.size
+  };
+}
+/* ===== CORE-END ===== */
+
+/* ===================== UI ===================== */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const NUM = new Intl.NumberFormat('el-GR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmt = c => NUM.format(c / 100);
+const EUR = new Intl.NumberFormat('el-GR', { style: 'currency', currency: 'EUR' });
+
+const state = { rows: [], sumCol: 'a', result: null, dirty: false };
+let uid = 0;
+
+function mkCell(raw) {
+  const p = parseAmount(raw);
+  return { raw: raw ?? '', cents: p.ok ? p.cents : null, error: p.ok ? '' : p.reason, warn: p.ok ? p.warn : null };
+}
+function mkRow(a, b) { return { id: ++uid, a: mkCell(a), b: mkCell(b) }; }
+function reparse(cell, raw) { Object.assign(cell, mkCell(raw)); }
+
+function toast(msg) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+const sumLabel = () => state.sumCol === 'a' ? 'Στήλη 1' : 'Στήλη 2';
+const targetLabel = () => state.sumCol === 'a' ? 'Στήλη 2' : 'Στήλη 1';
+
+/* ---- Εισαγωγή ---- */
+function nonEmpty(v) { return !(v === null || v === undefined || String(v).trim() === ''); }
+
+function extractColumns(rows) {
+  const limit = Math.min(rows.length, 5);
+  for (let r = 0; r < limit; r++) {
+    const cells = rows[r].map(c => String(c ?? '').trim().toUpperCase());
+    const vi = cells.findIndex(c => c.includes('VIVA'));
+    const si = cells.findIndex(c => c.includes('SOFTONE'));
+    if (vi > -1 && si > -1 && vi !== si) {
+      const body = rows.slice(r + 1);
+      return { a: body.map(x => x[vi]), b: body.map(x => x[si]) };
+    }
+  }
+  return { a: rows.map(x => x[0]), b: rows.map(x => x[1]) };
+}
+
+function loadRows(rawRows, source) {
+  const { a, b } = extractColumns(rawRows);
+  const n = Math.max(a.length, b.length);
+  const out = [];
+  for (let i = 0; i < n; i++) out.push(mkRow(a[i], b[i]));
+  // Κόβουμε μόνο τις κενές γραμμές στο τέλος· οι ενδιάμεσες μένουν για να ταιριάζουν με το αρχείο.
+  while (out.length && !nonEmpty(out[out.length - 1].a.raw) && !nonEmpty(out[out.length - 1].b.raw)) out.pop();
+  state.rows = out;
+  state.result = null; state.dirty = false;
+  renderAll();
+  toast(`${source}: ${out.length} γραμμές`);
+}
+
+function parseCSV(text) {
+  text = text.replace(/^﻿/, '');
+  const first = text.split(/\r?\n/)[0] || '';
+  const delim = first.includes(';') ? ';' : first.includes('\t') ? '\t' : ',';
+  const rows = [];
+  let row = [], field = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else q = false; }
+      else field += c;
+    } else if (c === '"') q = true;
+    else if (c === delim) { row.push(field); field = ''; }
+    else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+    else if (c !== '\r') field += c;
+  }
+  if (field !== '' || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+function cellPlain(cell) {
+  let v = cell.value;
+  if (v && typeof v === 'object') {
+    if ('result' in v) v = v.result;
+    else if (v.richText) v = v.richText.map(t => t.text).join('');
+    else if ('text' in v) v = v.text;
+    else if (v instanceof Date) v = v.toISOString();
+  }
+  return v;
+}
+
+async function handleFile(file) {
+  if (!file) return;
+  const name = file.name.toLowerCase();
+  try {
+    let rows;
+    if (name.endsWith('.csv')) {
+      rows = parseCSV(await file.text());
+    } else if (name.endsWith('.xlsx')) {
+      if (typeof ExcelJS === 'undefined') throw new Error('Η βιβλιοθήκη Excel δεν φορτώθηκε. Ελέγξτε τη σύνδεση στο internet.');
+      const wb = new ExcelJS.Workbook();
+      await wb.xlsx.load(await file.arrayBuffer());
+      rows = [];
+      wb.worksheets[0].eachRow({ includeEmpty: false }, row => {
+        const arr = [];
+        row.eachCell({ includeEmpty: true }, (cell, col) => { arr[col - 1] = cellPlain(cell); });
+        rows.push(arr);
+      });
+    } else {
+      throw new Error('Χρησιμοποιήστε αρχείο .xlsx ή .csv');
+    }
+    loadRows(rows, file.name);
+  } catch (e) {
+    toast(e.message || 'Σφάλμα ανάγνωσης αρχείου');
+  }
+}
+
+/* ---- Επικόλληση ανά στήλη ---- */
+function pasteColumn(col, text) {
+  const lines = text.split(/\r?\n/);
+  while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
+  const vals = lines.map(l => l.split('\t')[0].trim());
+  // Αν η πρώτη γραμμή είναι κεφαλίδα (λέξεις, όχι ποσό), την αγνοούμε
+  if (vals.length && !parseAmount(vals[0]).ok && /\p{L}/u.test(vals[0])) vals.shift();
+  while (state.rows.length < vals.length) state.rows.push(mkRow('', ''));
+  state.rows.forEach((r, i) => { r[col] = mkCell(i < vals.length ? vals[i] : ''); });
+  while (state.rows.length && !nonEmpty(state.rows[state.rows.length - 1].a.raw) && !nonEmpty(state.rows[state.rows.length - 1].b.raw)) state.rows.pop();
+  state.result = null; state.dirty = false;
+  renderAll();
+  toast(`Στήλη ${col === 'a' ? 1 : 2}: ${vals.length} τιμές`);
+}
+
+/* ---- Πίνακας ---- */
+function analysisOf(res, rows) {
+  const out = rows.map(() => []);
+  res.groups.forEach(g => {
+    if (g.type === 'verbatim') {
+      out[g.sRows[0]].push(`<span class="tag y">ΑΥΤΟΥΣΙΟ</span>ίδιο ποσό και στις δύο στήλες`);
+    } else {
+      const vals = g.sRows.map(s => rows[s][res.sumCol].cents);
+      const total = vals.reduce((a, b) => a + b, 0);
+      const multi = res.alternatives.get(g.tRow);
+      const flag = multi && multi.multi ? ' <span class="tag w">ΠΟΛΛΑΠΛΕΣ ΛΥΣΕΙΣ</span>' : '';
+      out[g.tRow].push(`${vals.map(fmt).join(' + ')} = <b>${fmt(total)}</b>${flag}`);
+    }
+  });
+  rows.forEach((r, i) => {
+    const t = r[res.tCol];
+    if (!res.cellGroup[i][res.tCol] && pos(t.cents)) out[i].push('<span class="red">χωρίς αντιστοίχιση</span>');
+    if (t.cents === null && nonEmpty(t.raw)) out[i].push(`<span class="red">${esc(t.error)}</span>`);
+  });
+  return out.map(a => a.join('<br>'));
+}
+function pos(c) { return c !== null && c !== undefined && c > 0; }
+
+function cellTd(cell, col, i, g) {
+  const cls = ['num'];
+  if (g) cls.push('tint');
+  if (cell.cents === null && nonEmpty(cell.raw)) cls.push('bad');
+  const style = g ? ` style="background:${g.color.tint}"` : '';
+  return `<td class="${cls.join(' ')}"${style}><input data-i="${i}" data-c="${col}" value="${esc(cell.raw)}" aria-label="Γραμμή ${i + 1}, ${col === 'a' ? 'Στήλη 1' : 'Στήλη 2'}"></td>`;
+}
+
+function renderTable() {
+  const res = state.result;
+  const an = res ? analysisOf(res, state.rows) : null;
+  const body = $('#body');
+  if (!state.rows.length) {
+    body.innerHTML = '<tr><td colspan="4" class="empty-row">Δεν υπάρχουν δεδομένα. Επικολλήστε δύο στήλες, ανοίξτε αρχείο ή δοκιμάστε τα δοκιμαστικά δεδομένα.</td></tr>';
+    return;
+  }
+  body.innerHTML = state.rows.map((r, i) => {
+    const cg = res ? res.cellGroup[i] : { a: null, b: null };
+    return `<tr>
+      <td class="idx">${i + 1}</td>
+      ${cellTd(r.a, 'a', i, cg.a)}
+      ${cellTd(r.b, 'b', i, cg.b)}
+      <td class="an">${res ? an[i] : ''}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ---- Σύνοψη, ειδοποιήσεις και μη αντιστοιχισμένα ---- */
+function renderChips() {
+  const res = state.result;
+  const chip = (k, v, cls = '') => `<div class="chip-s ${cls}"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+  if (!res) {
+    const a = state.rows.filter(r => nonEmpty(r.a.raw)).length;
+    const b = state.rows.filter(r => nonEmpty(r.b.raw)).length;
+    $('#chips').innerHTML = chip('Γραμμές', state.rows.length) + chip('Στήλη 1', a) + chip('Στήλη 2', b) + chip('Αποτελέσματα', '—');
+    $('#notice').innerHTML = state.rows.length ? '<div class="notice ok">Πατήστε «Εκτέλεση αντιστοίχισης» για να βρεθούν οι αντιστοιχίσεις.</div>' : '';
+    return;
+  }
+  const verb = res.groups.filter(g => g.type === 'verbatim').length;
+  const sums = res.groups.length - verb;
+  const unT = res.tCount - res.groups.length;
+  const unS = res.sCount - res.usedSCount;
+  const rate = res.tCount ? (res.groups.length / res.tCount) * 100 : 0;
+  $('#chips').innerHTML =
+    chip('Αυτούσια', verb, 'ok') +
+    chip('Αθροίσματα', sums, 'ok') +
+    chip(`Μη αντιστοιχισμένα · ${targetLabel()}`, unT, unT ? 'bad' : '') +
+    chip(`Μη χρησιμοποιημένα · ${sumLabel()}`, unS, unS ? 'bad' : '') +
+    chip('Ποσοστό επιτυχίας', rate.toFixed(1).replace('.', ',') + '%');
+  let note = '';
+  if (state.dirty) note = '<div class="notice">Τα δεδομένα άλλαξαν. Πατήστε «Εκτέλεση αντιστοίχισης» για ενημέρωση.</div>';
+  else if (!res.exhaustive) note = '<div class="notice">Η αναζήτηση περιορίστηκε λόγω μεγάλου όγκου. Οι αντιστοιχίσεις είναι ακριβείς, αλλά ίσως υπάρχουν και άλλες. Δοκιμάστε μικρότερο «Μέγιστο πλήθος ποσών».</div>';
+  $('#notice').innerHTML = note;
+}
+
+function renderUnmatched() {
+  const card = $('#unmatchedCard');
+  const res = state.result;
+  if (!res) { card.hidden = true; return; }
+  card.hidden = false;
+  const rows = state.rows;
+  const tUn = rows.map((r, i) => i).filter(i => pos(rows[i][res.tCol].cents) && !res.cellGroup[i][res.tCol]);
+  const sUn = rows.map((r, i) => i).filter(i => pos(rows[i][res.sumCol].cents) && !res.cellGroup[i][res.sumCol]);
+  const multi = [...res.alternatives.entries()].filter(([i]) => res.cellGroup[i][res.tCol] && res.alternatives.get(i).multi);
+  const unalt = [...res.alternatives.entries()].filter(([i]) => !res.cellGroup[i][res.tCol]);
+  const sec = (title, n, body) => `<details${n && n < 40 ? ' open' : ''}><summary>${title} <span class="muted">(${n})</span></summary>${body || '<p class="muted">Κανένα.</p>'}</details>`;
+  const altLine = (combo) => {
+    const used = combo.some(s => res.cellGroup[s][res.sumCol]);
+    const label = used ? '<span class="muted">χρησιμοποιεί ήδη αντιστοιχισμένα ποσά</span>' : '<span style="color:var(--ok)">ελεύθερος συνδυασμός · ελέγξτε</span>';
+    return `<div class="alt">${combo.map(s => fmt(rows[s][res.sumCol].cents)).join(' + ')} = <b>${fmt(combo.reduce((a, s) => a + rows[s][res.sumCol].cents, 0))}</b> · γραμμές ${combo.map(s => s + 1).join(', ')} · ${label}</div>`;
+  };
+  $('#unmatched').innerHTML =
+    sec(`${targetLabel()}: χωρίς αντιστοίχιση`, tUn.length,
+      tUn.map(i => `<div class="alt"><b>${fmt(rows[i][res.tCol].cents)}</b> · γραμμή ${i + 1}</div>`).join('')) +
+    sec(`${sumLabel()}: δεν χρησιμοποιήθηκαν`, sUn.length,
+      sUn.map(i => `<div class="alt"><b>${fmt(rows[i][res.sumCol].cents)}</b> · γραμμή ${i + 1}</div>`).join('')) +
+    sec('Πιθανές εναλλακτικές αντιστοιχίες', unalt.length,
+      unalt.map(([i, a]) => `<div class="alt"><b>${fmt(rows[i][res.tCol].cents)}</b> · γραμμή ${i + 1} · ${a.total} πιθανοί συνδυασμοί (έως 5)</div>` + a.combos.map(altLine).join('')).join('')) +
+    sec('Περιπτώσεις με περισσότερες από μία λύση', multi.length,
+      multi.map(([i, a]) => `<div class="alt"><b>${fmt(rows[i][res.tCol].cents)}</b> · γραμμή ${i + 1} · ${a.total} εναλλακτικοί συνδυασμοί (έως 5)</div>` + a.combos.map(altLine).join('')).join(''));
+}
+
+function renderAll() {
+  renderChips();
+  renderTable();
+  renderUnmatched();
+  $('#exportBtn').disabled = !state.result || state.dirty;
+  $('#legend').hidden = !state.result;
+}
+
+function runNow() {
+  if (!state.rows.length) { toast('Προσθέστε δεδομένα πρώτα'); return; }
+  const btn = $('#runBtn');
+  btn.disabled = true;
+  setTimeout(() => {
+    try {
+      state.result = runMatching(state.rows, state.sumCol, { maxSize: +$('#maxSize').value });
+      state.dirty = false;
+      const n = state.result.groups.length;
+      toast(`Βρέθηκαν ${n} ${n === 1 ? 'αντιστοίχιση' : 'αντιστοιχίσεις'}`);
+    } catch (e) {
+      console.error(e);
+      toast('Σφάλμα κατά τον υπολογισμό');
+    }
+    btn.disabled = false;
+    renderAll();
+  }, 20);
+}
+
+/* ---- Επεξεργασία κελιών ---- */
+function bindTable() {
+  $('#body').addEventListener('input', e => {
+    const inp = e.target;
+    if (inp.tagName !== 'INPUT') return;
+    const i = +inp.dataset.i, col = inp.dataset.c;
+    const cell = state.rows[i][col];
+    reparse(cell, inp.value);
+    inp.closest('td').classList.toggle('bad', cell.cents === null && nonEmpty(cell.raw));
+    if (state.result) { state.dirty = true; renderChips(); $('#exportBtn').disabled = true; }
+  });
+  $('#addRowBtn').addEventListener('click', () => {
+    state.rows.push(mkRow('', ''));
+    renderTable();
+    const inputs = document.querySelectorAll('#body input[data-c="a"]');
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  });
+}
+
+/* ---- Εξαγωγή Excel ---- */
+async function exportExcel() {
+  const res = state.result;
+  if (!res || state.dirty) return;
+  if (typeof ExcelJS === 'undefined') { toast('Η βιβλιοθήκη Excel δεν φορτώθηκε. Ελέγξτε τη σύνδεση στο internet.'); return; }
+  const rows = state.rows;
+  const EURF = '#,##0.00 "€"';
+  const wb = new ExcelJS.Workbook();
+  wb.created = new Date();
+
+  const newSheet = (name, headers, widths) => {
+    const ws = wb.addWorksheet(name, { views: [{ state: 'frozen', ySplit: 1 }] });
+    const hr = ws.addRow(headers);
+    hr.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    hr.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0A0A0A' } };
+    hr.height = 22;
+    ws.columns = widths.map(w => ({ width: w }));
+    return ws;
+  };
+  const paint = (cell, argb) => { cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb } }; };
+
+  // 1. Αντιστοιχίσεις (ίδια διάταξη με την οθόνη)
+  const an = analysisOf(res, rows).map(h => h.replace(/<[^>]+>/g, '').replace(/&lt;|&gt;/g, '').trim());
+  const ws = newSheet('Αντιστοιχίσεις', ['Γραμμή', 'Στήλη 1', 'Στήλη 2', 'Ανάλυση', 'Κατάσταση'], [10, 16, 16, 60, 22]);
+  rows.forEach((r, i) => {
+    const row = ws.addRow([
+      i + 1,
+      r.a.cents !== null ? r.a.cents / 100 : (r.a.raw === '' ? null : String(r.a.raw)),
+      r.b.cents !== null ? r.b.cents / 100 : (r.b.raw === '' ? null : String(r.b.raw)),
+      an[i],
+      (() => {
+        const ga = res.cellGroup[i].a, gb = res.cellGroup[i].b;
+        const g = ga || gb;
+        if (!g) return pos(r.a.cents) || pos(r.b.cents) ? 'Χωρίς αντιστοίχιση' : '';
+        return g.type === 'verbatim' ? 'ΑΥΤΟΥΣΙΟ' : 'ΑΘΡΟΙΣΜΑ';
+      })()
+    ]);
+    row.getCell(2).numFmt = EURF;
+    row.getCell(3).numFmt = EURF;
+    const ga = res.cellGroup[i].a, gb = res.cellGroup[i].b;
+    if (ga) paint(row.getCell(2), ga.color.xl);
+    if (gb) paint(row.getCell(3), gb.color.xl);
+  });
+
+  // 2. Αναλυτικές πράξεις με τύπους
+  const wg = newSheet('Αναλυτικές πράξεις', ['Ομάδα', 'Τύπος', 'Ποσό-στόχος (€)', 'Ποσό μερικό (€)', 'Άθροισμα (€)', 'Έλεγχος'], [10, 16, 18, 18, 18, 14]);
+  res.groups.forEach(g => {
+    const r0 = wg.rowCount + 1;
+    const sumCents = g.sRows.reduce((a, s) => a + rows[s][res.sumCol].cents, 0);
+    const first = r0 + 1, last = r0 + g.sRows.length;
+    const head = wg.addRow([g.id, g.type === 'verbatim' ? 'Αυτούσιο' : 'Άθροισμα', g.cents / 100, null,
+      g.type === 'sum' ? { formula: `SUM(D${first}:D${last})`, result: sumCents / 100 } : sumCents / 100,
+      { formula: `IF(ABS(E${r0}-C${r0})<0.005,"OK","ΣΦΑΛΜΑ")`, result: sumCents === g.cents ? 'OK' : 'ΣΦΑΛΜΑ' }]);
+    head.font = { bold: true };
+    g.sRows.forEach(s => {
+      wg.addRow(['', `${sumLabel()} · γραμμή ${s + 1}`, null, rows[s][res.sumCol].cents / 100, null, null]);
+    });
+    for (let r = r0; r <= last; r++) {
+      const row = wg.getRow(r);
+      [3, 4, 5].forEach(c => row.getCell(c).numFmt = EURF);
+      for (let c = 1; c <= 6; c++) paint(row.getCell(c), g.color.xl);
+    }
+    // Το ποσό-στόχος γράφεται στη σειρά του αθροίσματος
+    wg.getRow(r0).getCell(3).value = g.cents / 100;
+  });
+
+  // 3. Μη αντιστοιχισμένα
+  const wu = newSheet('Μη αντιστοιχισμένα', ['Στήλη', 'Γραμμή', 'Ποσό (€)', 'Σημείωση'], [18, 10, 18, 60]);
+  rows.forEach((r, i) => {
+    if (pos(r[res.tCol].cents) && !res.cellGroup[i][res.tCol]) {
+      const row = wu.addRow([targetLabel(), i + 1, r[res.tCol].cents / 100, 'Χωρίς αντιστοίχιση']);
+      row.getCell(3).numFmt = EURF;
+    }
+    if (pos(r[res.sumCol].cents) && !res.cellGroup[i][res.sumCol]) {
+      const row = wu.addRow([sumLabel(), i + 1, r[res.sumCol].cents / 100, 'Δεν χρησιμοποιήθηκε']);
+      row.getCell(3).numFmt = EURF;
+    }
+    const alt = res.alternatives.get(i);
+    if (alt && !res.cellGroup[i][res.tCol]) {
+      alt.combos.forEach(c => {
+        const row = wu.addRow([`Εναλλακτική για ${targetLabel()}`, i + 1, c.reduce((a, s) => a + rows[s][res.sumCol].cents, 0) / 100,
+          `${c.map(s => fmt(rows[s][res.sumCol].cents)).join(' + ')} (γραμμές ${c.map(s => s + 1).join(', ')})`]);
+        row.getCell(3).numFmt = EURF;
+      });
+    }
+    if (alt && alt.multi && res.cellGroup[i][res.tCol]) {
+      alt.combos.forEach(c => {
+        const row = wu.addRow(['Πολλαπλή λύση', i + 1, c.reduce((a, s) => a + rows[s][res.sumCol].cents, 0) / 100,
+          `${c.map(s => fmt(rows[s][res.sumCol].cents)).join(' + ')} (γραμμές ${c.map(s => s + 1).join(', ')})`]);
+        row.getCell(3).numFmt = EURF;
+      });
+    }
+  });
+
+  // 4. Σύνοψη
+  const verb = res.groups.filter(g => g.type === 'verbatim').length;
+  const s = newSheet('Σύνοψη', ['Μέτρο', 'Τιμή'], [44, 22]);
+  [
+    ['Γραμμές', rows.length],
+    ['Στήλη που αθροίζεται', sumLabel()],
+    ['Αυτούσια ποσά', verb],
+    ['Αθροίσματα', res.groups.length - verb],
+    [`Μη αντιστοιχισμένα · ${targetLabel()}`, res.tCount - res.groups.length],
+    [`Μη χρησιμοποιημένα · ${sumLabel()}`, res.sCount - res.usedSCount],
+    ['Ποσοστό επιτυχίας', res.tCount ? res.groups.length / res.tCount : 0],
+    ['Ακρίβεια αναζήτησης', res.exhaustive ? 'Πλήρης' : 'Περιορισμένη (μεγάλος όγκος)'],
+    ['Ημερομηνία εξαγωγής', new Date().toLocaleString('el-GR')]
+  ].forEach(r => s.addRow(r));
+  s.getCell('B8').numFmt = '0.0%';
+
+  const buf = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `antistoixisi_${new Date().toISOString().slice(0, 10)}.xlsx`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+  toast('Το αρχείο Excel δημιουργήθηκε');
+}
+
+/* ---- Δοκιμαστικά δεδομένα: τα δεδομένα της παλιάς φωτογραφίας ---- */
+function loadDemo() {
+  const A = ['51,87', '21,89', '156,89', '30,99', '47,89', '36,9', '106,2', '99,9', '30,35', '99,99', '23,38', '3,8', '28,5', '382,89', '317,54', '270,49', '301,95', '4,89', '277,9', '21,49', '45,75', '199', '84,9', '5,39', '68,39', '29,9', '169', '22,39', '94,8', '69,89', '20,99'];
+  const B = ['51,87', '21,89', '156,89', '185,08', '36,9', '130,25', '103,79', '23,38', '411,39', '572,44', '322,43', '277,9', '67,24', '199', '103,68', '84,9', '169', '22,39', '94,8', '69,89', '', '', '', '', '', '', '', '', '', '', 'ine stis 26/12 sthn viva'];
+  state.rows = A.map((a, i) => mkRow(a, B[i] ?? ''));
+  state.result = null; state.dirty = false;
+  renderAll();
+  toast('Φορτώθηκαν τα δεδομένα της φωτογραφίας');
+}
+
+function clearAll() {
+  state.rows = []; state.result = null; state.dirty = false;
+  renderAll();
+}
+
+function bindUI() {
+  $('#file').addEventListener('change', e => { handleFile(e.target.files[0]); e.target.value = ''; });
+  document.querySelectorAll('.paste-col textarea').forEach(t => t.addEventListener('paste', e => {
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData('text');
+    pasteColumn(t.dataset.col, text);
+    t.value = '';
+  }));
+  $('#demoBtn').addEventListener('click', loadDemo);
+  $('#clearBtn').addEventListener('click', clearAll);
+  $('#runBtn').addEventListener('click', runNow);
+  $('#exportBtn').addEventListener('click', exportExcel);
+
+  document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
+    state.sumCol = b.dataset.sum;
+    document.querySelectorAll('.seg button').forEach(x => x.classList.toggle('on', x === b));
+    if (state.result) runNow();
+    else renderAll();
+  }));
+
+  $('#themeBtn').addEventListener('click', () => {
+    const root = document.documentElement;
+    const dark = root.dataset.theme === 'dark' || (!root.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
+    root.dataset.theme = dark ? 'light' : 'dark';
+  });
+  bindTable();
+}
+
+bindUI();
+renderAll();
+</script>
+</body>
+</html>
