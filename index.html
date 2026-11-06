@@ -1,648 +1,398 @@
 <!DOCTYPE html>
-<html lang="el" data-theme="light">
+<html lang="el">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Συμφωνία Ποσών · SOFTONE ↔ VIVA</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Συμφωνία ποσών VIVA – SOFTONE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style>
-:root{--bg:#f5f5f7;--s:#fff;--s2:#f0f0f3;--t:#1d1d1f;--m:#6e6e73;--l:rgba(0,0,0,.08);--g:#1a8f42;--gb:rgba(48,190,96,.16);--b:#0a6cff;--bb:rgba(10,108,255,.12);--y:#9a6f00;--yb:rgba(255,204,0,.22);--r:#c9302c;--rb:rgba(255,69,58,.14);--sh:0 1px 2px rgba(0,0,0,.04),0 10px 30px rgba(0,0,0,.06)}
-[data-theme=dark]{--bg:#000;--s:#161618;--s2:#222224;--t:#f5f5f7;--m:#8e8e93;--l:rgba(255,255,255,.09);--g:#30d158;--gb:rgba(48,209,88,.18);--b:#0a84ff;--bb:rgba(10,132,255,.2);--y:#ffd60a;--yb:rgba(255,214,10,.16);--r:#ff453a;--rb:rgba(255,69,58,.2);--sh:none}
-[hidden]{display:none!important}
+:root{
+  --paper:#F3F4F0; --surface:#FBFBF9; --ink:#1D2530; --muted:#66707C; --rule:#D3D8D2;
+  --teal:#17544F; --blue:#2F5F8F; --amber:#8A5E12; --slate:#4A5A6B; --danger:#9B2C2C;
+}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--t);font:15px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Noto Sans",sans-serif;transition:background .3s,color .3s}
-.wrap{max-width:1240px;margin:0 auto;padding:28px 16px 90px}
-header{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:22px;flex-wrap:wrap}
-h1{font-size:30px;font-weight:700;letter-spacing:-.025em;margin:0}
-h2{font-size:17px;font-weight:600;margin:0}
-h3{font-size:14px;font-weight:600;margin:0 0 8px}
-.sub,.muted{color:var(--m);margin:4px 0 0}
-.card{background:var(--s);border:1px solid var(--l);border-radius:20px;padding:20px;box-shadow:var(--sh);margin-bottom:16px}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
-.stat{margin:0;padding:16px}
-.stat .l{color:var(--m);font-size:13px}
-.stat .v{font-size:24px;font-weight:650;letter-spacing:-.02em;margin-top:4px;font-variant-numeric:tabular-nums}
-.stat .s{color:var(--m);font-size:12px;margin-top:2px}
-.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.cols .card{margin:0}
-@media(max-width:860px){.cols{grid-template-columns:1fr}}
-.rh{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px}
-.ps{display:flex;gap:24px;margin:12px 0;color:var(--m);font-size:13px;flex-wrap:wrap}
-.ps b{display:block;color:var(--t);font-size:20px;font-variant-numeric:tabular-nums;font-weight:650}
-details.tools{margin:12px 0}
-summary{cursor:pointer;color:var(--m);font-size:13px;margin-bottom:8px}
-textarea{width:100%;min-height:70px;resize:vertical;border:1px solid var(--l);border-radius:12px;background:var(--s2);color:var(--t);font:inherit;padding:10px}
-.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-.tbl,.rtbl{max-height:380px;overflow:auto;border-radius:14px;border:1px solid var(--l)}
-.rtbl{max-height:560px}
-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
-th,td{padding:8px 10px;border-bottom:1px solid var(--l);text-align:left;vertical-align:middle}
-th{position:sticky;top:0;background:var(--s);color:var(--m);font-weight:500;font-size:12px;z-index:1}
-tr:last-child td{border-bottom:0}
-td.n{color:var(--m);width:44px;font-size:13px}
-.num{text-align:right;white-space:nowrap}
-.ops td{white-space:normal}
-.ops td.expr{min-width:280px;line-height:1.9}
-td.chips{min-width:110px;max-width:240px}
-.amt{width:100%;border:0;background:transparent;color:inherit;font:inherit;text-align:right;padding:4px 2px;outline:none;font-variant-numeric:tabular-nums}
-.amt.bad{color:var(--r);text-decoration:underline wavy}
-.amt:focus{background:var(--s2);border-radius:6px}
-.x{border:0;background:var(--s2);color:var(--m);width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:16px}
-.btn{appearance:none;border:0;border-radius:12px;padding:9px 15px;background:var(--t);color:var(--bg);font-weight:600;font-size:14px;font-family:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:transform .15s,opacity .15s}
-.btn:hover{opacity:.85}
-.btn:active{transform:scale(.97)}
-.btn.g{background:var(--s2);color:var(--t)}
-:focus-visible{outline:2px solid var(--b);outline-offset:2px}
-.ctl{display:flex;flex-wrap:wrap;gap:14px 20px;align-items:center;margin-bottom:14px}
-.ctl label{display:flex;flex-direction:column;gap:4px;color:var(--m);font-size:13px}
-.ctl label.chk{flex-direction:row;align-items:center;color:var(--t);font-size:14px}
-select,#q{appearance:none;background:var(--s2);color:var(--t);border:1px solid var(--l);border-radius:10px;padding:8px 12px;font:inherit;min-width:160px}
-.hint{font-size:12px;color:var(--m);margin:-4px 0 12px}
-.acts{display:flex;flex-wrap:wrap;gap:8px}
-.pr{display:flex;align-items:center;gap:10px;margin-top:16px;font-size:14px}
-.spin{width:16px;height:16px;border-radius:50%;border:2px solid var(--l);border-top-color:var(--g);animation:sp .8s linear infinite;flex:none}
-@keyframes sp{to{transform:rotate(360deg)}}
-.bar{height:6px;background:var(--s2);border-radius:9px;overflow:hidden;margin-top:10px}
-.bar i{display:block;height:100%;width:0;background:var(--g);transition:width .25s}
-.stale{color:var(--y);font-size:13px}
-.flt{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:4px;align-items:center}
-.k{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600;white-space:nowrap}
-.k.direct{background:var(--gb);color:var(--g)}.k.combo{background:var(--bb);color:var(--b)}.k.alt{background:var(--yb);color:var(--y)}.k.unm{background:var(--rb);color:var(--r)}
-.ch{display:inline-block;padding:1px 8px;margin:2px 4px 2px 0;border-radius:99px;font-size:11px;font-weight:600;color:#fff;background:var(--c);cursor:pointer;white-space:nowrap}
-.hl{font-weight:650;color:var(--c);font-variant-numeric:tabular-nums}
-.side{font-weight:650}
-.rr{color:var(--m);font-size:12px}
-.arrow{color:var(--m)}
-tr[data-i]{cursor:pointer}
-tr.has td:first-child{box-shadow:inset 3px 0 var(--c)}
-tr.hit td{background:color-mix(in srgb,var(--c) 16%,transparent)}
-tr.dim td{opacity:.4}
-tr.unm td{background:var(--rb)}
-#toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,160%);background:var(--s);color:var(--t);border:1px solid var(--l);border-radius:14px;padding:12px 18px;box-shadow:0 12px 40px rgba(0,0,0,.18);transition:transform .35s cubic-bezier(.2,.8,.2,1);max-width:92vw;z-index:9}
-#toast.show{transform:translate(-50%,0)}
-#toast.ok{border-color:var(--g)}#toast.warn{border-color:var(--y)}#toast.err{border-color:var(--r)}
-@media(max-width:640px){h1{font-size:23px}.stats{grid-template-columns:1fr 1fr}.btn{flex:1 1 auto;justify-content:center}}
-@media print{.noprint,.tools,.x{display:none!important}body{background:#fff;color:#000}.card{box-shadow:none;break-inside:avoid}.tbl,.rtbl{max-height:none;overflow:visible}}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+[hidden]{display:none!important}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 15px/1.5 "Instrument Sans",system-ui,sans-serif}
+.wrap{max-width:1280px;margin:0 auto;padding:28px 24px 72px}
+header{display:flex;flex-wrap:wrap;gap:16px 32px;align-items:flex-end;justify-content:space-between;padding-bottom:20px;border-bottom:1px solid var(--ink)}
+h1{font:600 36px/1.1 "Newsreader",Georgia,serif;margin:0;letter-spacing:-.01em}
+.lede{margin:8px 0 0;color:var(--muted);max-width:56ch}
+label.sel{font-size:14px;color:var(--muted);display:flex;gap:10px;align-items:center}
+select{font:inherit;padding:9px 10px;border:1px solid var(--rule);border-radius:6px;background:var(--surface);color:var(--ink)}
+button{font:600 14px/1 "Instrument Sans",system-ui,sans-serif;letter-spacing:.02em;padding:14px 18px;border-radius:6px;border:1px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer}
+button.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+button:disabled{opacity:.4;cursor:not-allowed}
+:focus-visible{outline:3px solid #7FB3AC;outline-offset:2px}
+.inputs{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:28px}
+.col-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.col-head h2{font:600 24px/1.2 "Newsreader",Georgia,serif;margin:0}
+.count{font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+textarea{width:100%;min-height:360px;resize:vertical;font:400 15px/1.6 ui-monospace,"SFMono-Regular",Consolas,monospace;padding:14px;border:1px solid var(--rule);border-radius:6px;background:var(--surface);color:var(--ink)}
+.hint{font-size:13px;color:var(--muted);margin:10px 0 0}
+.warn{color:var(--danger)}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
+.progress{margin-top:20px}
+.bar{height:3px;background:var(--rule);overflow:hidden}
+.bar span{display:block;height:100%;width:0;background:var(--teal);transition:width .2s linear}
+.status{font-size:14px;color:var(--muted);margin:10px 0 0;min-height:1.5em}
+.status.warn{color:var(--danger)}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:28px;border-top:1px solid var(--ink)}
+.summary div{padding:14px 16px 0 0}
+.summary b{display:block;font:500 30px/1.1 "Newsreader",Georgia,serif;font-variant-numeric:tabular-nums}
+.summary span{font-size:13px;color:var(--muted)}
+.results{display:grid;grid-template-columns:repeat(4,1fr);margin-top:32px;border-top:1px solid var(--rule)}
+.panel{padding:18px 20px 22px;border-right:1px solid var(--rule);min-width:0}
+.panel:last-child{border-right:0}
+.panel h3{font:600 15px/1.35 "Newsreader",Georgia,serif;margin:0 0 6px;display:flex;justify-content:space-between;gap:8px}
+.panel h3 .count{font-family:"Instrument Sans",system-ui,sans-serif}
+.panel ul{list-style:none;margin:0;padding:0;max-height:560px;overflow:auto}
+.panel li{padding:10px 0;border-top:1px solid var(--rule);font-variant-numeric:tabular-nums;font-size:14px;overflow-wrap:anywhere}
+.panel li .id{display:block;color:var(--muted);font-size:12px;margin-bottom:2px}
+.sub{font-size:13px;color:var(--muted);margin:16px 0 0}
+.empty{color:var(--muted);font-size:14px;margin:10px 0 0}
+.panel.sum li{color:var(--teal)}
+.panel.same li{color:var(--blue)}
+.panel.left-v li{color:var(--amber)}
+.panel.left-s li{color:var(--slate)}
+@media (max-width:1100px){
+  .results{grid-template-columns:1fr 1fr}
+  .panel:nth-child(2n){border-right:0}
+  .panel{border-bottom:1px solid var(--rule)}
+}
+@media (max-width:760px){
+  h1{font-size:28px}
+  .inputs,.results{grid-template-columns:1fr}
+  .panel{border-right:0}
+  .wrap{padding:20px 16px 56px}
+}
+@media (prefers-reduced-motion:reduce){.bar span{transition:none}}
 </style>
 </head>
 <body>
 <div class="wrap">
+
 <header>
-  <div><h1>Συμφωνία Ποσών</h1><p class="sub">SOFTONE ↔ VIVA · αμφίδρομη αντιπαραβολή ποσών, τοπικά στον browser</p></div>
-  <div class="acts noprint"><button class="btn g" id="theme">Θέμα</button><button class="btn g" id="bPrint">Εκτύπωση</button></div>
+  <div>
+    <h1>Συμφωνία ποσών VIVA – SOFTONE</h1>
+    <p class="lede">Βρίσκει ποσά της VIVA που προκύπτουν από αθροίσματα ποσών της SOFTONE. Οι υπολογισμοί γίνονται σε ακέραια λεπτά, τοπικά στον browser.</p>
+  </div>
+  <label class="sel">Μέγιστο πλήθος ποσών σε άθροισμα
+    <select id="maxk">
+      <option value="2">2</option><option value="3">3</option><option value="4">4</option>
+      <option value="5" selected>5</option><option value="6">6</option>
+    </select>
+  </label>
 </header>
 
-<section class="stats" id="stats"></section>
-
-<section class="cols">
-  <div class="card" id="pA"></div>
-  <div class="card" id="pB"></div>
-</section>
-
-<section class="card noprint">
-  <div class="ctl">
-    <label>Συνδυασμοί
-      <select id="mode">
-        <option value="all">Όλοι οι πιθανοί συνδυασμοί</option>
-        <option value="best" selected>Μόνο η καλύτερη λύση</option>
-        <option value="fewest">Προτεραιότητα στους λιγότερους αριθμούς</option>
-        <option value="multi">Πολλαπλές εναλλακτικές λύσεις</option>
-      </select></label>
-    <label>Μέγιστα ποσά ανά πράξη
-      <select id="maxk"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select></label>
-    <label class="chk"><input type="checkbox" id="excl" checked> Αποκλειστική χρήση ποσών ανά κατεύθυνση</label>
-    <label class="chk"><input type="checkbox" id="exd" checked> Εξαίρεση απευθείας αντιστοιχισμένων</label>
+<section class="inputs">
+  <div>
+    <div class="col-head"><h2>VIVA</h2><span class="count" id="vivaCount">0 εγγραφές</span></div>
+    <textarea id="viva" placeholder="Ένα ποσό ανά γραμμή, π.χ.&#10;10&#10;20&#10;35"></textarea>
+    <p class="hint warn" id="vivaWarn"></p>
   </div>
-  <p class="hint">Ο έλεγχος γίνεται και προς τις δύο κατευθύνσεις: SOFTONE → VIVA και VIVA → SOFTONE. Στις ετικέτες, το S σημαίνει SOFTONE και το V σημαίνει VIVA. Κάθε πράξη έχει δικό της χρώμα· τα ποσά που προστίθενται και το ποσό-στόχος της απέναντι στήλης έχουν το ίδιο χρώμα. Πατήστε μια πράξη για να φανούν τα σχετικά ποσά και στις δύο στήλες.</p>
-  <div class="acts">
-    <button class="btn" id="bCombo">Υπολογισμός Αντιστοιχίσεων</button>
-    <button class="btn g" id="bDirect">Εύρεση Κοινών Ποσών</button>
-    <button class="btn g" id="bCancel" hidden>Ακύρωση</button>
-    <button class="btn g" id="bNew">Νέα Αντιστοίχιση</button>
-    <button class="btn g" id="bImp">Εισαγωγή Δεδομένων</button>
-    <button class="btn g" id="bXls">Εξαγωγή Excel</button>
-    <button class="btn g" id="bCsv">Εξαγωγή CSV</button>
-    <button class="btn g" id="bClear">Καθαρισμός Δεδομένων</button>
+  <div>
+    <div class="col-head"><h2>SOFTONE</h2><span class="count" id="softCount">0 εγγραφές</span></div>
+    <textarea id="soft" placeholder="Ένα ποσό ανά γραμμή, π.χ.&#10;10&#10;15&#10;35"></textarea>
+    <p class="hint warn" id="softWarn"></p>
   </div>
-  <div id="prog" class="pr" hidden><span class="spin"></span><span id="ptxt"></span></div>
-  <div id="pbarw" class="bar" hidden><i id="pbar"></i></div>
 </section>
 
-<section class="card" id="resSec">
-  <div class="rh"><h2>Αποτελέσματα <span class="muted" id="rcount"></span></h2><span class="stale" id="rstale" hidden>Τα δεδομένα άλλαξαν. Επανυπολογίστε για ενημέρωση.</span></div>
-  <div class="flt">
-    <input id="q" type="search" placeholder="Αναζήτηση ποσού, π.χ. 13,89" style="flex:1;min-width:180px">
-    <select id="sort"><option value="">Σειρά εμφάνισης</option><option value="asc">Ποσό-στόχος (αύξουσα)</option><option value="desc">Ποσό-στόχος (φθίνουσα)</option></select>
-  </div>
-  <p class="muted" id="rempty"></p>
-</section>
-
-<section class="card">
-  <div class="rh"><h2>1 · Αντιστοιχίσεις SOFTONE → VIVA</h2><span class="muted" id="cAB"></span></div>
-  <p class="hint">Ποσά της SOFTONE που αθροίζονται σε ακριβώς ένα ποσό της VIVA.</p>
-  <div class="rtbl"><table class="ops"><thead><tr><th>Πράξη</th><th>Πλήρης μαθηματική πράξη</th><th class="num">Διαφορά</th><th>Κατάσταση</th></tr></thead><tbody id="tAB"></tbody></table></div>
-</section>
-
-<section class="card">
-  <div class="rh"><h2>2 · Αντιστοιχίσεις VIVA → SOFTONE</h2><span class="muted" id="cBA"></span></div>
-  <p class="hint">Ποσά της VIVA που αθροίζονται σε ακριβώς ένα ποσό της SOFTONE.</p>
-  <div class="rtbl"><table class="ops"><thead><tr><th>Πράξη</th><th>Πλήρης μαθηματική πράξη</th><th class="num">Διαφορά</th><th>Κατάσταση</th></tr></thead><tbody id="tBA"></tbody></table></div>
-</section>
-
-<section class="card">
-  <div class="rh"><h2>3 · Κοινές αντιστοιχίσεις (και από τις δύο κατευθύνσεις)</h2><span class="muted" id="cD"></span></div>
-  <p class="hint">Ακριβώς ίδια ποσά στις δύο στήλες. Εμφανίζονται μόνο εδώ, ώστε να μην διπλομετρώνται.</p>
-  <div class="rtbl"><table class="ops"><thead><tr><th>Πράξη</th><th>Πλήρης μαθηματική πράξη</th><th class="num">Διαφορά</th><th>Κατάσταση</th></tr></thead><tbody id="tD"></tbody></table></div>
-</section>
-
-<section class="card">
-  <div class="rh"><h2>4 · Μη αντιστοιχισμένα ποσά</h2></div>
-  <div id="unm"></div>
-</section>
+<div class="actions">
+  <button class="primary" id="run">ΕΝΑΡΞΗ ΕΛΕΓΧΟΥ</button>
+  <button id="clear">ΚΑΘΑΡΙΣΜΟΣ</button>
+  <button id="export" disabled>ΕΞΑΓΩΓΗ ΑΠΟΤΕΛΕΣΜΑΤΩΝ</button>
 </div>
-<div id="toast" role="status" aria-live="polite"></div>
+
+<div class="progress">
+  <div class="bar"><span id="bar"></span></div>
+  <p class="status" id="status" role="status" aria-live="polite"></p>
+</div>
+
+<section class="summary" id="summary" hidden></section>
+<section class="results" id="results" hidden></section>
+<p class="hint" id="note" hidden>Στρατηγική επιλογής: πρώτα οι συνδυασμοί με λιγότερα ποσά, και για ίδιο πλήθος κατά σειρά από μικρότερα ποσά SOFTONE. Κάθε εγγραφή SOFTONE χρησιμοποιείται μόνο μία φορά. Τα ίδια ποσά αντιστοιχίζονται πρώτα, ένα προς ένα.</p>
+
+</div>
 
 <script>
-const $=id=>document.getElementById(id);
-const KEY='recon.v1';
-const S={A:[],B:[]};
-const SIDE={A:'SOFTONE',B:'VIVA'};
-const PAL=['#0a6cff','#e8590c','#1a8f42','#9c36b5','#d6336c','#0c8599','#8b5a2b','#5f3dc4','#c2255c','#2b8a3e','#1864ab','#b8860b'];
-let P={A:[],B:[],m:new Map()},R=null,SEL=null,W=null,NID=1,STALE=false;
-const nf=new Intl.NumberFormat('el-GR',{minimumFractionDigits:2,maximumFractionDigits:2});
-const pf=new Intl.NumberFormat('el-GR',{maximumFractionDigits:1});
-const fmt=c=>nf.format(c/100);
-const money=c=>fmt(c)+'\u00a0€';
-const pct=(a,b)=>pf.format(b?a/b*100:0)+' %';
-const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
-const sumC=l=>l.reduce((a,x)=>a+x.c,0);
-const gx=id=>P.m.get(id)||{id,row:'—',c:0,raw:''};
-const nid=s=>s.toLowerCase()+(NID++);
-const KL={d:'Κοινό',p:'Πρωτεύουσα',a:'Εναλλακτική'};
-const KC={d:'direct',p:'combo',a:'alt'};
-const ST={d:'Επιβεβαιωμένο και από τις δύο κατευθύνσεις',p:'Επιτυχής αντιστοίχιση συνδυασμού',a:'Εναλλακτική λύση'};
-const DL={AB:'SOFTONE → VIVA',BA:'VIVA → SOFTONE',D:'Κοινά (και τις δύο)'};
-const LBL=o=>(o.dir==='AB'?'S→V #':o.dir==='BA'?'V→S #':'Κ #')+o.n;
+const $ = id => document.getElementById(id);
+const NODE_LIMIT = 500000;
+const money = c => (c / 100).toLocaleString('el-GR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const signed = c => c < 0 ? `(${money(c)})` : money(c);
+const tick = () => new Promise(r => setTimeout(r, 0));
+const LABEL_V = { same: 'Ίδιο ποσό', sum: 'Αντιστοιχισμένο με άθροισμα', '': 'Δεν βρέθηκε' };
+const LABEL_S = { same: 'Ίδιο ποσό', sum: 'Χρησιμοποιήθηκε σε άθροισμα', '': 'Δεν χρησιμοποιήθηκε' };
 
-/* ---------- Αριθμοί: ακριβής μετατροπή σε λεπτά ---------- */
-function toCents(v){
-  if(v==null)return null;
-  let t=String(v).trim().replace(/[€\s\u00a0]/g,'');
-  if(!t)return null;
-  const c=(t.match(/,/g)||[]).length,d=t.includes('.');
-  if(c&&d){t=t.lastIndexOf(',')>t.lastIndexOf('.')?t.replace(/\./g,'').replace(',','.'):t.replace(/,/g,'')}
-  else if(c){t=c>1?t.replace(/,/g,''):t.replace(',','.')}
-  else if(d&&/^-?\d{1,3}(\.\d{3})+$/.test(t))t=t.replace(/\./g,'');
-  const m=t.match(/^(-?)(\d+)(?:\.(\d{1,2}))?$/);
-  if(!m)return null;
-  const cents=Number(m[2])*100+Number((m[3]||'').padEnd(2,'0'));
-  return m[1]?-cents:cents;
-}
+let state = null, running = false, cancelled = false;
 
-/* ---------- Αποθήκευση ---------- */
-function opts(){return{mode:$('mode').value,maxK:+$('maxk').value,exclusive:$('excl').checked,excludeDirect:$('exd').checked}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify({A:S.A,B:S.B,o:opts()}))}catch(e){}}
-function load(){
-  try{
-    const d=JSON.parse(localStorage.getItem(KEY)||'null');
-    if(d){
-      S.A=(d.A||[]).map(r=>({id:String(r.id),raw:String(r.raw??'')}));
-      S.B=(d.B||[]).map(r=>({id:String(r.id),raw:String(r.raw??'')}));
-      const o=d.o||{};
-      $('mode').value=o.mode||'best';
-      $('maxk').value=String(Math.min(6,Math.max(2,+o.maxK||4)));
-      $('excl').checked=o.exclusive!==false;$('exd').checked=o.excludeDirect!==false;
-    }
-  }catch(e){}
-  NID=1+[...S.A,...S.B].reduce((m,r)=>Math.max(m,+r.id.slice(1)||0),0);
-}
-
-/* ---------- Πίνακες & στατιστικά ---------- */
-function parsed(a){return a.map((r,i)=>({id:r.id,row:i+1,raw:r.raw,c:toCents(r.raw)}))}
-function statCards(){
-  const vA=P.A.filter(x=>x.c!==null),vB=P.B.filter(x=>x.c!==null),none='—';
-  const cnt=dir=>R?R.ops.filter(o=>o.dir===dir).length:none;
-  const uA=R?vA.filter(x=>!R.mA.has(x.id)).length:0,uB=R?vB.filter(x=>!R.mB.has(x.id)).length:0;
-  const mB=R?vB.filter(x=>R.mB.has(x.id)).length:0;
-  return[
-    {l:'Σ SOFTONE',v:fmt(sumC(vA)),s:`${vA.length} εγγραφές`},
-    {l:'Σ VIVA',v:fmt(sumC(vB)),s:`${vB.length} εγγραφές`},
-    {l:'Κοινά (και τις δύο)',v:cnt('D'),s:R?'Ακριβώς ίδια ποσά':'Εκτελέστε αντιστοίχιση'},
-    {l:'SOFTONE → VIVA',v:cnt('AB'),s:'Πράξεις πολλών ποσών'},
-    {l:'VIVA → SOFTONE',v:cnt('BA'),s:'Πράξεις πολλών ποσών'},
-    {l:'Χωρίς αντιστοίχιση',v:R?uA+uB:none,s:R?`${uA} SOFTONE · ${uB} VIVA`:''},
-    {l:'Κάλυψη VIVA',v:R?pct(mB,vB.length):none,s:'Αντιστοιχισμένα ποσά VIVA'},
-    {l:'Συνολική διαφορά',v:fmt(sumC(vA)-sumC(vB)),s:'SOFTONE − VIVA'}
-  ];
-}
-function refresh(){
-  P.A=parsed(S.A);P.B=parsed(S.B);
-  P.m=new Map([...P.A,...P.B].map(x=>[x.id,x]));
-  for(const s of['A','B']){
-    const v=P[s].filter(x=>x.c!==null),bad=P[s].length-v.length;
-    $('sum'+s).innerHTML=`<div><b>${fmt(sumC(v))}</b>Σύνολο</div><div><b>${v.length}</b>Εγγραφές</div>${bad?`<div><b>${bad}</b>μη έγκυρες</div>`:''}`;
+/* ---------- Ανάλυση ποσών σε ακέραια λεπτά ---------- */
+function parseAmount(raw) {
+  let s = raw.replace(/[\s\u00A0€$£]/g, '').replace(/−/g, '-');
+  if (!s) return null;
+  const paren = /^\(.*\)$/.test(s);
+  if (paren) s = s.slice(1, -1);
+  const m = s.match(/^([+-]?)(.+)$/);
+  if (!m) return null;
+  const neg = paren || m[1] === '-';
+  const body = m[2];
+  const lc = body.lastIndexOf(','), ld = body.lastIndexOf('.');
+  let dec = null;
+  if (lc > -1 && ld > -1) dec = lc > ld ? ',' : '.';
+  else if (lc > -1 || ld > -1) {
+    const ch = lc > -1 ? ',' : '.';
+    dec = body.split(ch).length === 2 ? ch : null;
   }
-  $('stats').innerHTML=statCards().map(c=>`<div class="card stat"><div class="l">${c.l}</div><div class="v">${c.v}</div><div class="s">${c.s}</div></div>`).join('');
+  let intPart = body, frac = '';
+  if (dec) { const i = body.lastIndexOf(dec); intPart = body.slice(0, i); frac = body.slice(i + 1); }
+  intPart = intPart.replace(/[.,]/g, '');
+  if (!/^\d*$/.test(intPart) || !/^\d*$/.test(frac) || frac.length > 2 || (!intPart && !frac)) return null;
+  const cents = Number(intPart || '0') * 100 + Number((frac + '00').slice(0, 2));
+  return neg && cents ? -cents : cents;
 }
 
-/* ---------- Rendering ---------- */
-function panel(s){
-  const name=SIDE[s],num=s==='A'?1:2;
-  return `<div class="rh"><h2>${name} <span class="muted">· Στήλη ${num}</span></h2></div><div class="ps" id="sum${s}"></div>
-<details class="tools" open><summary>Εισαγωγή ποσών</summary>
-<textarea id="paste${s}" data-s="${s}" placeholder="Επικολλήστε από Excel (CTRL + V) ή γράψτε ένα ποσό ανά γραμμή"></textarea>
-<div class="row"><button class="btn g" data-act="paste" data-s="${s}">Προσθήκη</button>
-<label class="btn g">Αρχείο Excel / CSV<input type="file" accept=".xlsx,.xls,.csv" data-file="${s}" hidden></label>
-<button class="btn g" data-act="add" data-s="${s}">Νέα γραμμή</button></div></details>
-<div class="tbl"><table><tbody id="b${s}"></tbody></table></div>`;
+function parseList(text, prefix) {
+  const list = [], invalid = [];
+  for (const line of text.split(/\r?\n/)) {
+    if (!line.trim()) continue;
+    const cell = line.split('\t')[0].trim();
+    const c = parseAmount(cell);
+    if (c === null) invalid.push(cell);
+    else list.push({ id: prefix + (list.length + 1), c, idx: list.length, used: false, state: '' });
+  }
+  return { list, invalid };
 }
-function renderRows(s){
-  const by=R?R.by:null;
-  $('b'+s).innerHTML=S[s].map((r,i)=>{
-    const bad=r.raw.trim()&&toCents(r.raw)===null;
-    const list=by?(by.get(r.id)||[]):[];
-    const hit=!!SEL&&list.includes(SEL),dim=!!SEL&&!hit;
-    const first=list[0];
-    const col=hit?SEL.col:(first?first.col:null);
-    const chips=list.slice(0,4).map(o=>`<span class="ch" data-i="${o.uid}" style="--c:${o.col}" title="${esc(KL[o.k]+' · '+DL[o.dir])}">${LBL(o)}</span>`).join('')+(list.length>4?`<span class="muted"> +${list.length-4}</span>`:'');
-    return `<tr data-id="${r.id}" class="${first?'has':''}${hit?' hit':''}${dim?' dim':''}"${col?` style="--c:${col}"`:''}><td class="n">${i+1}</td><td><input class="amt${bad?' bad':''}" data-s="${s}" data-id="${r.id}" value="${esc(r.raw)}" inputmode="decimal" placeholder="0,00" aria-label="Γραμμή ${i+1}"></td><td class="chips">${chips}</td><td><button class="x" data-act="del" data-s="${s}" data-id="${r.id}" aria-label="Διαγραφή γραμμής ${i+1}">×</button></td></tr>`;
-  }).join('')||'<tr><td colspan="4" class="muted">Καμία εγγραφή. Προσθέστε γραμμή ή επικολλήστε ποσά.</td></tr>';
+
+function renderCounts() {
+  const v = parseList($('viva').value, 'V'), s = parseList($('soft').value, 'S');
+  $('vivaCount').textContent = `${v.list.length} εγγραφές`;
+  $('softCount').textContent = `${s.list.length} εγγραφές`;
+  $('vivaWarn').textContent = v.invalid.length ? `${v.invalid.length} μη έγκυρες γραμμές δεν θα ελεγχθούν` : '';
+  $('softWarn').textContent = s.invalid.length ? `${s.invalid.length} μη έγκυρες γραμμές δεν θα ελεγχθούν` : '';
 }
-function exprHTML(o){
-  const mem=o.m.map(gx),tg=gx(o.t),sum=sumC(mem);
-  const h=c=>`<span class="hl" style="--c:${o.col}">${money(c)}</span>`;
-  return `<span class="side">${SIDE[o.ms]}</span> <span class="rr">γρ. ${mem.map(x=>x.row).join(', ')}</span>: ${mem.map(x=>h(x.c)).join(' + ')} = ${h(sum)} <span class="arrow">→</span> <span class="side">${SIDE[o.ts]}</span> <span class="rr">γρ. ${tg.row}</span>: ${h(tg.c)}`;
+
+/* ---------- Αναζήτηση συνδυασμών με ακριβή ισότητα ---------- */
+// vals: ταξινομημένα ascending. Επιλέγονται m στοιχεία με δείκτες ≥ start, άθροισμα = target.
+// Κλάδεμα: με ταξινόμηση, το ελάχιστο και μέγιστο άθροισμα m στοιχείων είναι γνωστά από prefix sums.
+function* search(vals, pre, start, m, target, ctx, chosen) {
+  const n = vals.length;
+  if (m === 0) { if (target === 0) yield chosen.slice(); return; }
+  if (start + m > n) return;
+  if (target > pre[n] - pre[n - m]) return;
+  for (let i = start; i <= n - m; i++) {
+    if (target < pre[i + m] - pre[i]) return;
+    if (++ctx.nodes > NODE_LIMIT) { ctx.limit = true; return; }
+    if (ctx.nodes % 4096 === 0) yield null;
+    chosen.push(i);
+    yield* search(vals, pre, i + 1, m - 1, target - vals[i], ctx, chosen);
+    chosen.pop();
+    if (ctx.limit) return;
+  }
 }
-function opRow(o){
-  const sel=SEL===o,diff=sumC(o.m.map(gx))-gx(o.t).c;
-  return `<tr data-i="${o.uid}" class="has${sel?' hit':''}" style="--c:${o.col}">
-<td><span class="k ${KC[o.k]}">${KL[o.k]}</span> <span class="rr">${LBL(o)}</span></td>
-<td class="expr">${exprHTML(o)}</td>
-<td class="num">${fmt(diff)}</td>
-<td>${ST[o.k]}</td></tr>`;
+
+function setProgress(p, text) {
+  $('bar').style.width = `${Math.round(p * 100)}%`;
+  $('status').textContent = text;
+  $('status').classList.remove('warn');
 }
-function renderSections(){
-  $('rstale').hidden=!STALE;
-  if(!R){
-    $('rempty').hidden=false;
-    $('rempty').textContent='Δεν υπάρχουν ακόμη αποτελέσματα. Πατήστε «Υπολογισμός Αντιστοιχίσεων».';
-    ['tAB','tBA','tD'].forEach(id=>$(id).innerHTML='');
-    ['cAB','cBA','cD'].forEach(id=>$(id).textContent='');
-    $('unm').innerHTML='';
-    $('rcount').textContent='';
+
+function updateButtons() {
+  $('run').disabled = running;
+  $('export').disabled = running || !state;
+}
+
+async function runCheck() {
+  if (running) return;
+  const V0 = parseList($('viva').value, 'V').list;
+  const S0 = parseList($('soft').value, 'S').list;
+  if (!V0.length || !S0.length) {
+    $('status').textContent = 'Εισάγετε ποσά και στις δύο στήλες πριν ξεκινήσετε τον έλεγχο.';
     return;
   }
-  $('rempty').hidden=true;
-  const q=$('q').value.replace(/\s/g,'').toLowerCase(),so=$('sort').value;
-  const txt=o=>[o.t,...o.m].map(id=>fmt(gx(id).c)).join(' ').replace(/\s/g,'').toLowerCase();
-  const LIM=500;
-  const paintList=(dir,body,cnt)=>{
-    const all=R.ops.filter(o=>o.dir===dir);
-    let L=all.filter(o=>!q||txt(o).includes(q));
-    if(so==='asc')L.sort((x,y)=>gx(x.t).c-gx(y.t).c);
-    else if(so==='desc')L.sort((x,y)=>gx(y.t).c-gx(x.t).c);
-    $(body).innerHTML=L.slice(0,LIM).map(opRow).join('')||'<tr><td colspan="4" class="muted">Καμία πράξη.</td></tr>';
-    $(cnt).textContent=`${L.length} από ${all.length}${L.length>LIM?` · εμφανίζονται οι ${LIM} πρώτες (όλες στο Excel)`:''}`;
-  };
-  paintList('AB','tAB','cAB');
-  paintList('BA','tBA','cBA');
-  paintList('D','tD','cD');
-  $('rcount').textContent=`${R.ops.length} πράξεις συνολικά`;
-  const uA=P.A.filter(x=>x.c!==null&&!R.mA.has(x.id)),uB=P.B.filter(x=>x.c!==null&&!R.mB.has(x.id));
-  const ulist=(L,name)=>`<div><h3>${name} · ${L.length}</h3><div class="tbl"><table><thead><tr><th>Γραμμή</th><th class="num">Ποσό</th></tr></thead><tbody>${L.map(x=>`<tr class="unm"><td>${x.row}</td><td class="num">${money(x.c)}</td></tr>`).join('')||'<tr><td colspan="2" class="muted">Όλα τα ποσά είναι αντιστοιχισμένα</td></tr>'}</tbody></table></div></div>`;
-  $('unm').innerHTML=`<div class="cols">${ulist(uA,'SOFTONE')}${ulist(uB,'VIVA')}</div>`;
-}
-function renderAll(){renderRows('A');renderRows('B');refresh();renderSections()}
-function changed(){
-  if(R)STALE=true;
-  renderRows('A');renderRows('B');refresh();renderSections();save();
-}
-function select(o){
-  SEL=SEL===o?null:o;
-  renderRows('A');renderRows('B');renderSections();
-}
-
-/* ---------- Εισαγωγή ---------- */
-function addPasted(s){
-  const ta=$('paste'+s),lines=ta.value.split(/\r?\n/).map(l=>l.split('\t')[0].trim()).filter(Boolean);
-  if(!lines.length)return;
-  lines.forEach(raw=>S[s].push({id:nid(s),raw}));
-  ta.value='';changed();
-  toast(`Προστέθηκαν ${lines.length} γραμμές στη στήλη ${SIDE[s]}`);
-}
-async function importFile(f,s){
-  if(!f)return;
-  if(!window.XLSX)return toast('Η βιβλιοθήκη Excel δεν φορτώθηκε. Ελέγξτε τη σύνδεση στο διαδίκτυο.','err');
-  try{
-    const wb=XLSX.read(await f.arrayBuffer(),{type:'array'});
-    let aoa=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:true,blankrows:false});
-    if(aoa.length&&typeof aoa[0][0]==='string'&&toCents(aoa[0][0])===null)aoa=aoa.slice(1);
-    const add=aoa.filter(r=>r[0]!=null&&String(r[0]).trim()!=='').map(r=>({id:nid(s),raw:String(r[0])}));
-    if(!add.length)return toast('Δεν βρέθηκαν ποσά στο αρχείο','warn');
-    S[s].push(...add);changed();
-    toast(`Εισήχθησαν ${add.length} γραμμές από το αρχείο (πρώτη στήλη)`);
-  }catch(err){toast('Το αρχείο δεν μπόρεσε να διαβαστεί','err')}
-}
-
-/* ---------- Worker: αμφίδρομη αναζήτηση υποσυνόλων ---------- */
-function workerFn(){
-  self.onmessage=function(e){
-    const {A,B,o}=e.data,LIM=3e6,out={direct:[],ab:[],ba:[],aborted:0};
-    /* 1. Απευθείας αντιστοιχίσεις 1-προς-1 (ίδιο ποσό). Επιβεβαιώνονται και προς τις δύο κατευθύνσεις. */
-    const bm=new Map(),dA=new Set(),dB=new Set();
-    B.forEach(b=>{if(!bm.has(b.c))bm.set(b.c,[]);bm.get(b.c).push(b.id)});
-    A.forEach(a=>{const l=bm.get(a.c);if(l&&l.length){const bid=l.shift();dA.add(a.id);dB.add(bid);out.direct.push({a:a.id,b:bid})}});
-    if(o.direct){postMessage({t:'d',...out});return}
-    /* 2. Στόχοι κάθε κατεύθυνσης: ποσά που δεν έχουν ήδη απευθείας αντιστοίχιση */
-    const tAB=B.filter(b=>b.c>0&&!dB.has(b.id)),tBA=A.filter(a=>a.c>0&&!dA.has(a.id));
-    const total=tAB.length+tBA.length;let prog=0;
-    postMessage({t:'p',d:0,n:total});
-    const tick=()=>{prog++;if(prog%20===0||prog===total)postMessage({t:'p',d:prog,n:total})};
-    /* 3. Μία κατεύθυνση: ποσά-στόχοι του ενός πίνακα, υποσύνολα του άλλου */
-    const runDir=(targets,pool,dset,key)=>{
-      const S=pool.filter(x=>x.c>0).sort((x,y)=>x.c-y.c),n=S.length,sc=S.map(x=>x.c);
-      const busy0=new Uint8Array(n);
-      if(o.exclusive||o.excludeDirect)S.forEach((x,i)=>{if(dset.has(x.id))busy0[i]=1});
-      let BZ=busy0,st={n:0,ab:false};
-      const find=(T,k,lim)=>{
-        const r=[],p=[];
-        const go=(s,rem)=>{
-          for(let i=s;i<n&&r.length<lim&&!st.ab;i++){
-            if(sc[i]>rem)break;
-            if(BZ[i])continue;
-            if(++st.n>LIM){st.ab=true;return}
-            p.push(i);
-            if(sc[i]===rem){if(p.length===k)r.push(p.slice())}
-            else if(p.length<k)go(i+1,rem-sc[i]);
-            p.pop();
-          }
-        };
-        go(0,T);return r;
-      };
-      const search=T=>{
-        st={n:0,ab:false};let c=[];
-        if(o.mode==='fewest'){for(let k=2;k<=o.maxK&&!c.length;k++)c=find(T,k,50)}
-        else{const lim=o.mode==='best'?1:o.mode==='all'?500:10;for(let k=2;k<=o.maxK&&c.length<lim;k++)c=c.concat(find(T,k,lim-c.length))}
-        return c;
-      };
-      const prim=new Map();
-      BZ=busy0.slice();
-      targets.forEach(t=>{
-        const c=search(t.c);
-        if(st.ab)out.aborted++;
-        if(c.length){
-          const pr=c[0];
-          if(o.exclusive)pr.forEach(i=>BZ[i]=1);
-          prim.set(t.id,pr.join());
-          out[key].push({t:t.id,m:pr.map(i=>S[i].id),k:'p'});
-        }
-        tick();
-      });
-      if(o.mode!=='best'){
-        BZ=busy0;
-        targets.forEach(t=>{
-          const pr=prim.get(t.id),c=search(t.c);let k=0;
-          for(const q of c){
-            if(q.join()===pr)continue;
-            out[key].push({t:t.id,m:q.map(i=>S[i].id),k:'a'});
-            if(++k>=19)break;
-          }
-        });
+  const maxK = Number($('maxk').value);
+  running = true; cancelled = false; state = null;
+  renderResults(); updateButtons();
+  try {
+    // 1) Ίδια ποσά, ένα προς ένα, με τη σειρά εμφάνισης
+    const pending = new Map();
+    S0.forEach(s => { if (!pending.has(s.c)) pending.set(s.c, []); pending.get(s.c).push(s); });
+    const same = [];
+    for (const v of V0) {
+      const q = pending.get(v.c);
+      if (q && q.length) {
+        const s = q.shift();
+        v.used = s.used = true; v.state = s.state = 'same';
+        same.push({ v, s });
       }
-    };
-    runDir(tAB,A,dA,'ab');
-    runDir(tBA,B,dB,'ba');
-    postMessage({t:'d',...out});
-  };
-}
-
-/* ---------- Εκτέλεση ---------- */
-function setProg(d,n){
-  const p=n?Math.round(d/n*100):100;
-  $('pbar').style.width=p+'%';
-  $('ptxt').textContent=`Υπολογισμός… ${d} από ${n} ποσά-στόχους (${p}%)`;
-}
-function showProg(on){
-  $('prog').hidden=!on;$('pbarw').hidden=!on;$('bCancel').hidden=!on;
-}
-function run(direct){
-  refresh();
-  const A=P.A.filter(x=>x.c!==null).map(x=>({id:x.id,c:x.c})),B=P.B.filter(x=>x.c!==null).map(x=>({id:x.id,c:x.c}));
-  if(!A.length||!B.length)return toast('Χρειάζονται έγκυρα ποσά και στις δύο στήλες','err');
-  if(W)W.terminate();
-  const o={...opts(),direct:!!direct};
-  save();
-  showProg(true);setProg(0,1);
-  const w=new Worker(URL.createObjectURL(new Blob([`(${workerFn})()`],{type:'text/javascript'})));
-  W=w;
-  w.onmessage=e=>{
-    if(e.data.t==='p'){setProg(e.data.d,e.data.n);return}
-    w.terminate();W=null;done(e.data);
-  };
-  w.onerror=()=>{w.terminate();W=null;showProg(false);toast('Σφάλμα κατά τον υπολογισμό','err')};
-  w.postMessage({A,B,o});
-}
-function cancel(){
-  if(W){W.terminate();W=null}
-  showProg(false);toast('Ο υπολογισμός ακυρώθηκε','warn');
-}
-function done(d){
-  showProg(false);
-  const ops=[],cnt={AB:0,BA:0,D:0};
-  const add=(dir,k,m,t,ms,ts)=>{
-    cnt[dir]++;
-    ops.push({uid:ops.length,dir,n:cnt[dir],k,m,t,ms,ts,col:PAL[ops.length%PAL.length]});
-  };
-  d.direct.forEach(x=>add('D','d',[x.a],x.b,'A','B'));
-  d.ab.forEach(x=>add('AB',x.k,x.m,x.t,'A','B'));
-  d.ba.forEach(x=>add('BA',x.k,x.m,x.t,'B','A'));
-  const by=new Map(),mA=new Set(),mB=new Set();
-  ops.forEach(o=>{
-    const link=(id,side)=>{if(!by.has(id))by.set(id,[]);by.get(id).push(o);(side==='A'?mA:mB).add(id)};
-    o.m.forEach(id=>link(id,o.ms));
-    link(o.t,o.ts);
-  });
-  R={ops,by,mA,mB};SEL=null;STALE=false;
-  renderAll();
-  const un=P.A.filter(x=>x.c!==null&&!mA.has(x.id)).length+P.B.filter(x=>x.c!==null&&!mB.has(x.id)).length;
-  if(d.aborted)toast(`Ο έλεγχος σταμάτησε σε ${d.aborted} ποσά-στόχους λόγω ορίου πράξεων. Μειώστε τα μέγιστα ποσά.`,'warn');
-  else toast(`${cnt.AB} SOFTONE→VIVA · ${cnt.BA} VIVA→SOFTONE · ${cnt.D} κοινά · ${un} χωρίς αντιστοίχιση`);
-}
-
-/* ---------- Εξαγωγή ---------- */
-function dl(blob,name){
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();
-  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
-}
-function plainOp(o){
-  const mem=o.m.map(gx),sum=sumC(mem),tg=gx(o.t);
-  return `${SIDE[o.ms]} (γρ. ${mem.map(x=>x.row).join(', ')}): ${mem.map(x=>money(x.c)).join(' + ')} = ${money(sum)} ${SIDE[o.ts]} (γρ. ${tg.row}): ${money(tg.c)}`;
-}
-async function xlsx(){
-  if(!window.ExcelJS)return toast('Η βιβλιοθήκη Excel δεν φορτώθηκε. Ελέγξτε τη σύνδεση.','err');
-  if(!R)return toast('Εκτελέστε πρώτα τον υπολογισμό','warn');
-  try{
-    const wb=new ExcelJS.Workbook();
-    wb.creator='Συμφωνία Ποσών';wb.created=new Date();
-    const argb=h=>'FF'+h.replace('#','').toUpperCase();
-    const paint=(c,h)=>{c.fill={type:'pattern',pattern:'solid',fgColor:{argb:argb(h)}};c.font={bold:true,color:{argb:'FFFFFFFF'}}};
-    const colL=n=>{let s='';while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26)}return s};
-    const header=ws=>{ws.getRow(1).eachCell(c=>paint(c,'#1d1d1f'));ws.getRow(1).alignment={vertical:'middle',wrapText:true};ws.views=[{state:'frozen',ySplit:1}]};
-    const labelsOf=id=>(R.by.get(id)||[]).map(LBL).join(', ');
-    const eurRaw=x=>x.c===null?x.raw:x.c/100;
-
-    /* Φύλλο 1: αρχικά δεδομένα με τις πράξεις στις οποίες συμμετέχει κάθε γραμμή */
-    const ws0=wb.addWorksheet('Αρχικά δεδομένα');
-    ws0.columns=[{header:'Γραμμή SOFTONE',width:15},{header:'Ποσό SOFTONE (€)',width:18},{header:'Πράξεις SOFTONE',width:34},{header:'Γραμμή VIVA',width:14},{header:'Ποσό VIVA (€)',width:18},{header:'Πράξεις VIVA',width:34}];
-    const nRows=Math.max(P.A.length,P.B.length);
-    for(let i=0;i<nRows;i++){
-      const a=P.A[i],b=P.B[i];
-      const r=ws0.addRow([a?a.row:'',a?eurRaw(a):'',a?labelsOf(a.id):'',b?b.row:'',b?eurRaw(b):'',b?labelsOf(b.id):'']);
-      r.getCell(2).numFmt='#,##0.00';r.getCell(5).numFmt='#,##0.00';
-      if(a&&a.c!==null&&R.mA.has(a.id))paint(r.getCell(2),R.by.get(a.id)[0].col);
-      if(b&&b.c!==null&&R.mB.has(b.id))paint(r.getCell(5),R.by.get(b.id)[0].col);
     }
-    header(ws0);
 
-    /* Φύλλα 2 και 3: κάθε πράξη αναλυτικά, με ξεχωριστή στήλη για κάθε ποσό */
-    const opSheet=(dir,title,src,tgt)=>{
-      const list=R.ops.filter(o=>o.dir===dir);
-      const K=Math.max(2,list.reduce((m,o)=>Math.max(m,o.m.length),0));
-      const ws=wb.addWorksheet(title);
-      ws.columns=[
-        {header:'Αρ. πράξης',width:11},{header:'Τύπος',width:14},{header:`Γραμμές ${src}`,width:16},
-        ...Array.from({length:K},(_,i)=>({header:`${src} · ποσό ${i+1} (€)`,width:16})),
-        {header:`Άθροισμα ${src} (€)`,width:18},{header:`Ποσό-στόχος ${tgt} (€)`,width:18},{header:`Γραμμή ${tgt}`,width:12},
-        {header:'Διαφορά (€)',width:14},{header:'Πλήρης μαθηματική πράξη',width:70},{header:'Κατάσταση',width:34}
-      ];
-      const cSum=4+K,cTgt=5+K,cRow=6+K,cDiff=7+K;
-      list.forEach((o,idx)=>{
-        const r=idx+2,mem=o.m.map(gx),sum=sumC(mem),tg=gx(o.t);
-        const amounts=Array.from({length:K},(_,i)=>mem[i]?mem[i].c/100:null);
-        const row=ws.addRow([
-          o.n,KL[o.k],mem.map(x=>x.row).join(', '),
-          ...amounts,
-          {formula:`SUM(${colL(4)}${r}:${colL(3+K)}${r})`,result:sum/100},
-          tg.c/100,tg.row,
-          {formula:`${colL(cSum)}${r}-${colL(cTgt)}${r}`,result:(sum-tg.c)/100},
-          plainOp(o),ST[o.k]
-        ]);
-        for(let c=4;c<=cDiff;c++)row.getCell(c).numFmt='#,##0.00';
-        mem.forEach((x,i)=>paint(row.getCell(4+i),o.col));
-        paint(row.getCell(cTgt),o.col);
-      });
-      header(ws);
+    // 2) Αθροίσματα: για κάθε ποσό VIVA που μένει, δοκιμάζουμε συνδυασμούς 2..maxK από τα ελεύθερα SOFTONE
+    const targets = V0.filter(v => !v.used);
+    const matches = [], incomplete = [];
+    for (let t = 0; t < targets.length && !cancelled; t++) {
+      const v = targets[t];
+      const pool = S0.filter(s => !s.used).sort((a, b) => a.c - b.c || a.idx - b.idx);
+      const vals = pool.map(s => s.c);
+      const pre = [0];
+      vals.forEach(x => pre.push(pre[pre.length - 1] + x));
+      let found = null, limited = false;
+      for (let k = 2; k <= maxK && k <= pool.length && !found && !cancelled; k++) {
+        const ctx = { nodes: 0, limit: false };
+        const gen = search(vals, pre, 0, k, v.c, ctx, []);
+        let last = performance.now();
+        for (;;) {
+          const r = gen.next();
+          if (r.done) break;
+          if (r.value) { found = r.value; break; }
+          if (performance.now() - last > 25) {
+            setProgress((t + 0.5) / targets.length, `Έλεγχος ${t + 1} από ${targets.length} ποσών VIVA`);
+            await tick();
+            last = performance.now();
+            if (cancelled) break;
+          }
+        }
+        if (ctx.limit) limited = true;
+      }
+      if (found) {
+        const parts = found.map(i => pool[i]).sort((a, b) => a.idx - b.idx);
+        parts.forEach(p => { p.used = true; p.state = 'sum'; });
+        v.used = true; v.state = 'sum';
+        matches.push({ v, parts });
+      } else if (limited) {
+        incomplete.push(v);
+      }
+      setProgress((t + 1) / targets.length, `Έλεγχος ${t + 1} από ${targets.length} ποσών VIVA`);
+      await tick();
+    }
+    if (cancelled) return;
+
+    state = {
+      V: V0, S: S0, same, matches, incomplete,
+      leftV: V0.filter(v => !v.used), leftS: S0.filter(s => !s.used)
     };
-    opSheet('AB','SOFTONE προς VIVA','SOFTONE','VIVA');
-    opSheet('BA','VIVA προς SOFTONE','VIVA','SOFTONE');
-
-    /* Φύλλο 4: κοινές αντιστοιχίσεις και προς τις δύο κατευθύνσεις */
-    const wd=wb.addWorksheet('Κοινές (και τις δύο)');
-    wd.columns=[{header:'Αρ.',width:8},{header:'Γραμμή SOFTONE',width:16},{header:'Ποσό SOFTONE (€)',width:18},{header:'Γραμμή VIVA',width:14},{header:'Ποσό VIVA (€)',width:18},{header:'Διαφορά (€)',width:14},{header:'Κατάσταση',width:42}];
-    R.ops.filter(o=>o.dir==='D').forEach((o,idx)=>{
-      const r=idx+2,a=gx(o.m[0]),b=gx(o.t);
-      const row=wd.addRow([o.n,a.row,a.c/100,b.row,b.c/100,{formula:`C${r}-E${r}`,result:(a.c-b.c)/100},ST.d]);
-      row.getCell(3).numFmt='#,##0.00';row.getCell(5).numFmt='#,##0.00';row.getCell(6).numFmt='#,##0.00';
-      paint(row.getCell(3),o.col);paint(row.getCell(5),o.col);
-    });
-    header(wd);
-
-    /* Φύλλο 5: μη αντιστοιχισμένα */
-    const wu=wb.addWorksheet('Μη αντιστοιχισμένα');
-    wu.columns=[{header:'Στήλη',width:14},{header:'Γραμμή',width:10},{header:'Ποσό',width:16},{header:'Κατάσταση',width:34}];
-    P.A.filter(x=>!R.mA.has(x.id)).forEach(x=>{const rw=wu.addRow(['SOFTONE',x.row,eurRaw(x),x.c===null?'Μη έγκυρο ποσό':'Χωρίς αντιστοίχιση']);rw.getCell(3).numFmt='#,##0.00'});
-    P.B.filter(x=>!R.mB.has(x.id)).forEach(x=>{const rw=wu.addRow(['VIVA',x.row,eurRaw(x),x.c===null?'Μη έγκυρο ποσό':'Χωρίς αντιστοίχιση']);rw.getCell(3).numFmt='#,##0.00'});
-    header(wu);
-
-    /* Φύλλο 6: στατιστικά */
-    const wsS=wb.addWorksheet('Στατιστικά');
-    wsS.columns=[{header:'Στατιστικό',width:28},{header:'Τιμή',width:22},{header:'Σημείωση',width:34}];
-    statCards().forEach(c=>wsS.addRow([c.l,String(c.v),c.s]));
-    header(wsS);
-
-    const buf=await wb.xlsx.writeBuffer();
-    dl(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),'reconciliation.xlsx');
-  }catch(err){
-    console.error(err);toast('Η εξαγωγή Excel απέτυχε','err');
+    const n = incomplete.length;
+    setProgress(1, n
+      ? `Ολοκληρώθηκε. Για ${n} ποσά ο έλεγχος σταμάτησε στο όριο αναζήτησης. Μειώστε το πλήθος ποσών ή ελέγξτε χειροκίνητα.`
+      : 'Ο έλεγχος ολοκληρώθηκε.');
+    if (n) $('status').classList.add('warn');
+  } finally {
+    running = false;
+    renderResults();
+    updateButtons();
   }
 }
-function csv(){
-  if(!R)return toast('Εκτελέστε πρώτα τον υπολογισμό','warn');
-  const q=v=>`"${String(v).replace(/"/g,'""')}"`;
-  const head=['Κατεύθυνση','Αρ.','Τύπος','Γραμμές πηγής','Ποσά που προστίθενται','Άθροισμα','Ποσό-στόχος','Γραμμή στόχου','Διαφορά','Πλήρης πράξη','Κατάσταση'];
-  const lines=R.ops.map(o=>{
-    const mem=o.m.map(gx),sum=sumC(mem),tg=gx(o.t);
-    return [DL[o.dir],o.n,KL[o.k],mem.map(x=>x.row).join(', '),mem.map(x=>fmt(x.c)).join(' + '),fmt(sum),fmt(tg.c),tg.row,fmt(sum-tg.c),plainOp(o),ST[o.k]].map(q).join(';');
-  });
-  dl(new Blob(['\ufeff'+[head.map(q).join(';'),...lines].join('\r\n')],{type:'text/csv;charset=utf-8'}),'reconciliation.csv');
+
+/* ---------- Εμφάνιση ---------- */
+function renderResults() {
+  const sum = $('summary'), res = $('results'), note = $('note');
+  if (!state) { sum.hidden = res.hidden = note.hidden = true; return; }
+  const { V, S, same, matches, leftV, leftS } = state;
+  sum.hidden = res.hidden = note.hidden = false;
+
+  sum.innerHTML = [
+    [V.length, 'εγγραφές VIVA'], [S.length, 'εγγραφές SOFTONE'],
+    [same.length, 'ίδια ποσά'], [matches.length, 'αντιστοιχίσεις με άθροισμα'],
+    [leftV.length, 'VIVA που περισσεύουν'], [leftS.length, 'SOFTONE που περισσεύουν']
+  ].map(([n, l]) => `<div><b>${n}</b><span>${l}</span></div>`).join('');
+
+  const list = (items, f) => items.length ? `<ul>${items.map(f).join('')}</ul>` : '<p class="empty">Κανένα</p>';
+  const head = (title, n) => `<h3>${title}<span class="count">${n}</span></h3>`;
+  const item = (id, amount) => `<li><span class="id">${id}</span>${money(amount)}</li>`;
+
+  res.innerHTML = `
+    <div class="panel sum">
+      ${head('ΑΡΙΘΜΟΙ ΠΟΥ ΒΡΕΘΗΚΑΝ ΑΠΟ ΑΘΡΟΙΣΜΑΤΑ', matches.length)}
+      ${list(matches, m => item(m.v.id, m.v.c))}
+    </div>
+    <div class="panel sum">
+      ${head('ΠΡΑΞΕΙΣ SOFTONE', matches.length)}
+      ${list(matches, m => `<li>${m.parts.map(p => signed(p.c)).join(' + ')} = ${money(m.v.c)}<span class="id">${m.parts.map(p => p.id).join(', ')} → ${m.v.id}</span></li>`)}
+    </div>
+    <div class="panel same">
+      ${head('ΙΔΙΑ ΠΟΣΑ ΣΤΙΣ ΔΥΟ ΣΤΗΛΕΣ', same.length)}
+      ${list(same, p => `<li><span class="id">${p.v.id} / ${p.s.id}</span>${money(p.v.c)}</li>`)}
+    </div>
+    <div class="panel left-v">
+      ${head('ΠΟΣΑ ΠΟΥ ΠΕΡΙΣΣΕΥΟΥΝ', leftV.length + leftS.length)}
+      <p class="sub">Ποσά VIVA που δεν βρέθηκαν · ${leftV.length}</p>
+      ${list(leftV, e => item(e.id, e.c))}
+      <p class="sub">Ποσά SOFTONE που δεν χρησιμοποιήθηκαν · ${leftS.length}</p>
+      <div class="left-s">${list(leftS, e => item(e.id, e.c))}</div>
+    </div>`;
 }
 
-/* ---------- UI helpers ---------- */
-function toast(t,k='ok'){
-  const el=$('toast');el.textContent=t;el.className='show '+k;
-  clearTimeout(toast.t);toast.t=setTimeout(()=>el.className='',3600);
-}
-
-/* ---------- Γεγονότα ---------- */
-document.body.addEventListener('click',e=>{
-  const act=e.target.closest('[data-act]');
-  if(act){
-    const s=act.dataset.s,a=act.dataset.act;
-    if(a==='paste')addPasted(s);
-    else if(a==='add'){S[s].push({id:nid(s),raw:''});changed()}
-    else if(a==='del'){S[s]=S[s].filter(r=>r.id!==act.dataset.id);changed()}
+/* ---------- Εξαγωγή σε Excel (.xlsx) ---------- */
+function exportXlsx() {
+  if (!state) return;
+  if (typeof XLSX === 'undefined') {
+    $('status').textContent = 'Η βιβλιοθήκη Excel δεν φορτώθηκε. Ελέγξτε τη σύνδεση στο διαδίκτυο.';
+    $('status').classList.add('warn');
     return;
   }
-  const el=e.target.closest('[data-i]');
-  if(el&&R&&R.ops[+el.dataset.i])select(R.ops[+el.dataset.i]);
-});
-document.body.addEventListener('input',e=>{
-  const t=e.target;
-  if(!t.classList.contains('amt'))return;
-  const r=S[t.dataset.s].find(x=>x.id===t.dataset.id);
-  if(r)r.raw=t.value;
-  t.classList.toggle('bad',!!t.value.trim()&&toCents(t.value)===null);
-  if(R)STALE=true;
-  refresh();renderSections();save();
-});
-document.body.addEventListener('change',e=>{
-  const f=e.target;
-  if(f.dataset&&f.dataset.file){importFile(f.files[0],f.dataset.file);f.value=''}
-});
-document.body.addEventListener('paste',e=>{
-  const t=e.target;
-  if(t.tagName==='TEXTAREA'&&t.dataset.s)setTimeout(()=>addPasted(t.dataset.s),0);
-});
-['mode','maxk','excl','exd'].forEach(id=>$(id).addEventListener('change',save));
-$('q').addEventListener('input',renderSections);
-$('sort').addEventListener('change',renderSections);
-$('bCombo').addEventListener('click',()=>run(false));
-$('bDirect').addEventListener('click',()=>run(true));
-$('bCancel').addEventListener('click',cancel);
-$('bNew').addEventListener('click',()=>{R=null;SEL=null;STALE=false;renderAll();toast('Νέα αντιστοίχιση. Τα δεδομένα παραμένουν.')});
-$('bImp').addEventListener('click',()=>{document.querySelectorAll('details').forEach(d=>d.open=true);$('pA').scrollIntoView({behavior:'smooth',block:'start'})});
-$('bXls').addEventListener('click',xlsx);
-$('bCsv').addEventListener('click',csv);
-$('bPrint').addEventListener('click',()=>window.print());
-$('bClear').addEventListener('click',()=>{
-  if(!confirm('Θέλετε να διαγραφούν όλα τα δεδομένα και τα αποτελέσματα;'))return;
-  S.A=[];S.B=[];R=null;SEL=null;STALE=false;save();renderAll();toast('Τα δεδομένα διαγράφηκαν','warn');
-});
-$('theme').addEventListener('click',()=>{
-  const t=document.documentElement.dataset.theme==='dark'?'light':'dark';
-  document.documentElement.dataset.theme=t;
-  try{localStorage.setItem('recon.theme',t)}catch(e){}
-});
+  const { V, S, same, matches, leftV, leftS } = state;
+  const wb = XLSX.utils.book_new();
+  const add = (name, rows, widths, amountCols = []) => {
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = widths.map(w => ({ wch: w }));
+    rows.forEach((row, r) => row.forEach((val, c) => {
+      if (amountCols.includes(c) && typeof val === 'number') {
+        ws[XLSX.utils.encode_cell({ r, c })].z = '#,##0.00';
+      }
+    }));
+    XLSX.utils.book_append_sheet(wb, ws, name);
+  };
+  const amt = c => c / 100;
 
-/* ---------- Εκκίνηση ---------- */
-$('pA').innerHTML=panel('A');
-$('pB').innerHTML=panel('B');
-load();
-try{document.documentElement.dataset.theme=localStorage.getItem('recon.theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch(e){}
-renderAll();
+  add('Σύνοψη', [
+    ['Στοιχείο', 'Πλήθος'],
+    ['Εγγραφές VIVA', V.length],
+    ['Εγγραφές SOFTONE', S.length],
+    ['Ίδια ποσά', same.length],
+    ['Αντιστοιχίσεις με άθροισμα', matches.length],
+    ['VIVA που περισσεύουν', leftV.length],
+    ['SOFTONE που περισσεύουν', leftS.length]
+  ], [30, 12]);
+
+  add('VIVA', [['Αναγνωριστικό', 'Ποσό', 'Κατάσταση'],
+    ...V.map(v => [v.id, amt(v.c), LABEL_V[v.state]])], [14, 16, 32], [1]);
+
+  add('SOFTONE', [['Αναγνωριστικό', 'Ποσό', 'Κατάσταση'],
+    ...S.map(s => [s.id, amt(s.c), LABEL_S[s.state]])], [14, 16, 32], [1]);
+
+  add('Ίδια ποσά', [['Ποσό', 'Αναγνωριστικό VIVA', 'Αναγνωριστικό SOFTONE'],
+    ...same.map(p => [amt(p.v.c), p.v.id, p.s.id])], [16, 20, 22], [0]);
+
+  add('Αθροίσματα', [['Αναγνωριστικό VIVA', 'Ποσό VIVA', 'Αναγνωριστικά SOFTONE', 'Πλήθος ποσών SOFTONE', 'Πράξη'],
+    ...matches.map(m => [m.v.id, amt(m.v.c), m.parts.map(p => p.id).join(', '), m.parts.length,
+      `${m.parts.map(p => (p.c / 100).toString()).join(' + ')} = ${amt(m.v.c)}`])], [20, 14, 34, 22, 40], [1]);
+
+  add('Περισσεύοντα', [['Προέλευση', 'Αναγνωριστικό', 'Ποσό'],
+    ...leftV.map(e => ['VIVA', e.id, amt(e.c)]),
+    ...leftS.map(e => ['SOFTONE', e.id, amt(e.c)])], [14, 16, 16], [2]);
+
+  const d = new Date(), stamp = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+  XLSX.writeFile(wb, `viva-softone-${stamp}.xlsx`);
+}
+
+/* ---------- Σύνδεση ---------- */
+$('viva').addEventListener('input', renderCounts);
+$('soft').addEventListener('input', renderCounts);
+$('run').addEventListener('click', runCheck);
+$('export').addEventListener('click', exportXlsx);
+$('clear').addEventListener('click', () => {
+  cancelled = true;
+  $('viva').value = '';
+  $('soft').value = '';
+  state = null;
+  renderCounts();
+  renderResults();
+  setProgress(0, '');
+  updateButtons();
+});
+renderCounts();
+updateButtons();
 </script>
 </body>
 </html>
